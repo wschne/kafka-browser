@@ -42,3 +42,6 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
     - $HOME/.m2
+
+after_script:
+  - ls -la build/jfx/native
