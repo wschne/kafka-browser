@@ -49,10 +49,12 @@ class OverallConnectionsControllerSpec extends AbstractKafkaSpec {
         })
 
         then:
-        FxAssert.verifyThat('#configuredConnectionsList', { ListView it ->
-            it.items.size() == 1
-            it.items.first() == connectionSettings
-        })
+        conditions.within(3) {
+            FxAssert.verifyThat('#configuredConnectionsList', { ListView li ->
+                li.items.size() == 1
+                li.items.first() == connectionSettings
+            })
+        }
 
         when:
         FxToolkit.setupStage({
