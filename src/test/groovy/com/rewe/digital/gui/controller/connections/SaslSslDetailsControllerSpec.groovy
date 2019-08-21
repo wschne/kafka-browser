@@ -55,9 +55,9 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
 
         where:
         expectedResult | loginUser    | loginPassword | saslMechanism | trustStoreFileName                   | trustStorePassword
-        'success'      | 'admin'      | 'nodesinek'   | 'PLAIN'       | 'docker.kafka.server.truststore.jks' | 'nodesinek'
         'failed'       | 'wrong_user' | 'nodesinek'   | 'PLAIN'       | 'docker.kafka.server.truststore.jks' | 'nodesinek'
         'failed'       | 'admin'      | 'wrong_pw'    | 'PLAIN'       | 'docker.kafka.server.truststore.jks' | 'nodesinek'
+        'success'      | 'admin'      | 'nodesinek'   | 'PLAIN'       | 'docker.kafka.server.truststore.jks' | 'nodesinek'
     }
 
     private String getSecurityFile(String fileName) {
