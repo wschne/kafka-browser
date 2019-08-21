@@ -29,5 +29,8 @@ abstract class AbstractKafkaSpec extends AbstractApplicationSpec {
 
         zookeeper.start()
         kafkaContainer.start()
+        conditions.within(10) {
+            kafkaContainer.isRunning()
+        }
     }
 }

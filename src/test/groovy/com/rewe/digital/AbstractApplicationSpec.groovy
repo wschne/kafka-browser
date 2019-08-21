@@ -12,7 +12,7 @@ import spock.util.concurrent.PollingConditions
 
 abstract class AbstractApplicationSpec extends ApplicationSpec {
 
-    PollingConditions conditions = new PollingConditions()
+    static PollingConditions conditions = new PollingConditions()
 
     static GuiceContext context = new GuiceContext(this, { [new KafkaBrowserMain.GuiceModule()] });
     static StageFactory factory
