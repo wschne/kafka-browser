@@ -40,6 +40,15 @@ before_cache:
   - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.bin
   - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.lock
 
+deploy:
+  provider: releases
+  api_key: $GITHUB_KEY
+  file: "build/jfx/native/kafka-browser-1.0.deb"
+  skip_cleanup: true
+  draft: true
+  on:
+    tags: true
+
 cache:
   directories:
     - $HOME/.gradle/caches/
