@@ -1,5 +1,7 @@
 # Kafka-Browser ![](./src/main/deploy/package/macosx/kafka-browser.png)
 
+[![Build Status](https://travis-ci.org/wschne/kafka-browser.svg?branch=master)](https://travis-ci.org/wschne/kafka-browser)
+
 Kafka browser is a desktop tool, used to query and analyse data stored on a Kafka cluster. We currently support following features:
 
 - SQL Syntax to query for data on topics
