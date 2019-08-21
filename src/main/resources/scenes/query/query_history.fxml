@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="800.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rewe.digital.gui.controller.querying.QueryHistoryController">
+   <children>
+       <VBox alignment="TOP_CENTER" spacing="5" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" VBox.vgrow="ALWAYS">
+           <ListView fx:id="historyList" onMouseClicked="#execcuteQueryByDoubleClick" minHeight="775"/>
+           <HBox alignment="BASELINE_CENTER" spacing="10">
+               <Button fx:id="executeButton" disable="true" onAction="#executeQuery" text="Execute" />
+               <Button fx:id="cancelButton" onAction="#closeWindow" text="Cancel" />
+           </HBox>
+         <padding>
+            <Insets bottom="5.0" />
+         </padding>
+       </VBox>
+   </children>
+</AnchorPane>

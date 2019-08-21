@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.rewe.digital.gui.controls.FilePicker?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.*?>
+<?import java.lang.String?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.rewe.digital.gui.controller.connections.SaslSslDetailsController">
+    <GridPane alignment="center" hgap="10" vgap="10">
+        <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+        </padding>
+        <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" maxWidth="Infinity" minWidth="193.0" prefWidth="100">
+            </ColumnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" maxWidth="Infinity" minWidth="200" prefWidth="200">
+            </ColumnConstraints>
+        </columnConstraints>
+
+        <Label text="Broker security" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <ComboBox fx:id="securityTypeSelection" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="PLAINTEXT"/>
+                    <String fx:value="SASL_SSL"/>
+                </FXCollections>
+            </items>
+            <value>
+                <String fx:value="PLAINTEXT"/>
+            </value>
+        </ComboBox>
+
+        <Label text="Truststore location" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <FilePicker fx:id="truststoreLocation" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <Label text="Truststore password" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <PasswordField fx:id="truststorePassword" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+        <Label text="Keystore location" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <FilePicker fx:id="keystoreLocation" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+        <Label text="Keystore password" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <PasswordField fx:id="keystorePassword" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+        <Label text="Keystore private key password" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <PasswordField fx:id="sslKeyPassword" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+
+        <Label text="SASL Mechanism" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+        <TextField fx:id="saslMechanism" text="PLAIN" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+
+        <Label text="Login user" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+        <TextField fx:id="loginUser" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+
+        <Label text="Login password" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+        <PasswordField fx:id="loginPassword" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="9"/>
+
+        <rowConstraints>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+        </rowConstraints>
+    </GridPane>
+</AnchorPane>

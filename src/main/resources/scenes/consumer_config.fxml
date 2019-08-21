@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="100.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rewe.digital.gui.controller.ConsumerConfigController">
+    <children>
+        <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <TitledPane fx:id="consumerSettingsPane" collapsible="false" text="Consumer settings">
+                <GridPane alignment="center" hgap="10" vgap="10">
+                    <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                    </padding>
+                    <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" maxWidth="Infinity" minWidth="250.0" prefWidth="100">
+                        </ColumnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" maxWidth="Infinity" minWidth="200" prefWidth="200">
+                        </ColumnConstraints>
+                    </columnConstraints>
+
+                    <Label text="Total messages on topic:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="textBoxNumberOfMessages" promptText="calculating..." prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="0" disable="true" text="0" />
+
+                    <Label text="Consume from offset" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <ComboBox fx:id="offsetSelection" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="1" onAction="#setVisibleInput">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="EARLIEST" />
+                                <String fx:value="LATEST" />
+                                <String fx:value="TIME_OFFSET" />
+                            </FXCollections>
+                        </items>
+                        <value>
+                            <String fx:value="LATEST" />
+                        </value>
+                    </ComboBox>
+
+                    <Label fx:id="consumeMessagesInfo" text="Consume total number of messages:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                    <TextField fx:id="textBoxAmountOfMessagesToConsume" text="100" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+                    <TextField fx:id="timeUntilNow" GridPane.columnIndex="0" GridPane.rowIndex="2" visible="false"/>
+                    <ComboBox fx:id="timeUnitSelection" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="2" visible="false">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="MINUTES" />
+                                <String fx:value="HOURS" />
+                                <String fx:value="DAYS" />
+                            </FXCollections>
+                        </items>
+                        <value>
+                            <String fx:value="HOURS" />
+                        </value>
+                    </ComboBox>
+
+                    <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                    </rowConstraints>
+                </GridPane>
+            </TitledPane>
+            <HBox alignment="BASELINE_CENTER" spacing="5">
+                <Button fx:id="buttonCloseWindow" defaultButton="false" onAction="#closeWindow" prefWidth="100" text="Cancel" />
+                <Button fx:id="buttonStartConsumer" defaultButton="true" onAction="#startConsumer" prefWidth="150.0" text="Start consumer" disable="true"/>
+                <padding>
+                    <Insets bottom="5.0" top="5.0" />
+                </padding>
+            </HBox>
+        </VBox>
+    </children>
+</AnchorPane>

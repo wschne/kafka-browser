@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<?import javafx.scene.control.PasswordField?>
+<AnchorPane prefHeight="400.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.172-ea"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rewe.digital.gui.controller.connections.OverallConnectionsController">
+    <children>
+        <SplitPane dividerPositions="0.3684210526315789" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <VBox spacing="10">
+                    <HBox spacing="5.0">
+                        <Button onMouseClicked="#addConnection">
+                            <graphic>
+                                <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="images/plus_icon.png"/>
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="removeConnectionButton" disable="true" onMouseClicked="#removeConnection">
+                            <graphic>
+                                <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="images/minus_icon.png"/>
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <opaqueInsets>
+                            <Insets/>
+                        </opaqueInsets>
+                        <VBox.margin>
+                            <Insets left="5.0" top="5.0"/>
+                        </VBox.margin>
+                    </HBox>
+                    <ListView fx:id="configuredConnectionsList" onMouseClicked="#connectByDoubleClick"/>
+                </VBox>
+                <VBox fx:id="connectionDetails">
+                    <TitledPane collapsible="false" text="General settings">
+                        <GridPane alignment="center" hgap="10" vgap="10">
+                            <padding>
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints halignment="RIGHT" maxWidth="Infinity" minWidth="130.0"
+                                                   prefWidth="100">
+                                </ColumnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS" maxWidth="Infinity" minWidth="200" prefWidth="200">
+                                </ColumnConstraints>
+                            </columnConstraints>
+
+                            <Label text="Cluster name" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <TextField fx:id="clusterNameField" prefHeight="30.0" GridPane.columnIndex="1"
+                                       GridPane.rowIndex="1"/>
+
+                            <Label text="Bootstrap servers" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <TextField fx:id="bootstrapServersField" prefHeight="30.0" GridPane.columnIndex="1"
+                                       GridPane.rowIndex="2"/>
+
+                            <HBox fx:id="connectionCheckBox" alignment="CENTER" spacing="5" visible="false"
+                                  GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="3">
+                                <Label text="Status:"/>
+                                <Label fx:id="connectionCheckLabel"/>
+                            </HBox>
+                            <rowConstraints>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                            </rowConstraints>
+                        </GridPane>
+                    </TitledPane>
+                    <TitledPane collapsible="false" text="Authentication settings">
+                        <fx:include source="sasl_ssl_details.fxml" />
+                    </TitledPane>
+                    <HBox alignment="BASELINE_CENTER" spacing="5">
+                        <Button fx:id="saveButton" defaultButton="false" onAction="#saveCurrentSettings" prefWidth="100"
+                                text="Save">
+                        </Button>
+                        <Button fx:id="checkButton" defaultButton="false" onAction="#checkCurrentSettings"
+                                prefWidth="100" text="Check">
+                        </Button>
+                        <Button fx:id="connectButton" defaultButton="true" onAction="#connectUsingCurrentSettings"
+                                prefWidth="100" text="Connect">
+                        </Button>
+                        <padding>
+                            <Insets bottom="5.0" top="5.0"/>
+                        </padding>
+                    </HBox>
+                </VBox>
+            </items>
+        </SplitPane>
+    </children>
+</AnchorPane>

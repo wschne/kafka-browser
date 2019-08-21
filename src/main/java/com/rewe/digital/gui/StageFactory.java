@@ -1,0 +1,55 @@
+package com.rewe.digital.gui;
+
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Named
+public class StageFactory {
+    @Inject
+    private FXMLLoader fxmlLoader;
+
+    private Map<String, Stage> previouslyCreatedStages = new ConcurrentHashMap<>();
+
+    public Stage createStage(final String sceneFile,
+                             final String sceneCssFile,
+                             final String title) {
+        if (previouslyCreatedStages.containsKey(sceneFile)) {
+            return previouslyCreatedStages.get(sceneFile);
+        } else {
+            Parent root = getParent(sceneFile);
+
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getClassLoader().getResource(sceneCssFile).toExternalForm());
+            scene.setUserData(fxmlLoader);
+
+            Stage newWindow = new Stage();
+            newWindow.setScene(scene);
+            newWindow.setTitle(title);
+
+            previouslyCreatedStages.put(sceneFile, newWindow);
+            return newWindow;
+        }
+    }
+
+    public Parent getParent(String sceneFile) {
+        final URL location = Objects.requireNonNull(getClass().getClassLoader().getResource(sceneFile));
+        fxmlLoader.setLocation(location);
+        Parent root = null;
+        try {
+            root = fxmlLoader.load();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return root;
+    }
+}

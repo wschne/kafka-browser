@@ -1,0 +1,81 @@
+buildscript {
+    dependencies {
+        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
+        classpath "io.franzbecker:gradle-lombok:2.0"
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'java'
+    id 'application'
+    id 'groovy'
+}
+
+group 'com.rewe.digital'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'javafx-gradle-plugin'
+apply plugin: "io.franzbecker.gradle-lombok"
+
+mainClassName = 'com.rewe.digital.KafkaBrowserMain'
+
+jfx {
+    mainClass = 'com.rewe.digital.KafkaBrowserMain'
+    vendor = "REWE-Digital"
+    appName = "kafka-browser"
+
+    updateExistingJar = true
+    addPackagerJar = true
+    copyAdditionalAppResourcesToJar = true
+    skipCopyingDependencies = false
+    useLibFolderContentForManifestClasspath = true
+}
+
+configurations.all {
+    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+}
+
+dependencies {
+    compile 'javax.inject:javax.inject:1'
+    compile 'com.gluonhq:ignite-guice:1.0.2'
+    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '2.3.0'
+    compile 'com.google.guava:guava:27.1-jre'
+    compile group: 'com.victorlaerte', name: 'jfx-asynctask', version: '1.0.1'
+    compile group: 'org.awaitility', name: 'awaitility', version: '3.1.6'
+    compile 'org.fuin:ext4logback:0.2.0'
+    compile 'com.google.guava:guava:28.0-jre'
+
+    compile ('org.apache.spark:spark-core_2.11:2.4.3')
+    compile group: 'org.apache.spark', name: 'spark-streaming_2.11', version: '2.4.3'
+    compile group: 'org.apache.spark', name: 'spark-streaming-kafka-0-10_2.11', version: '2.4.3'
+    compile (group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.4.3')
+    compile group: 'org.apache.spark', name: 'spark-sql-kafka-0-10_2.11', version: '2.4.3'
+    
+    testCompile group: "org.testfx", name: "testfx-core", version: "4.0.15-alpha"
+    testCompile group: "org.testfx", name: "testfx-spock", version: "4.0.15-alpha"
+    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.5.6'
+    testCompile group: 'org.spockframework', name: 'spock-core', version: '1.3-groovy-2.5'
+    testCompile group: 'org.testcontainers', name: 'kafka', version: '1.11.3'
+    testCompile group: 'org.testcontainers', name: 'spock', version: '1.11.3'
+
+
+    // optional dependencies for using Spock
+    testRuntime "org.objenesis:objenesis:3.0.1"    // allows mocking of classes without default constructor (together with CGLIB)
+    testRuntime "cglib:cglib-nodep:3.2.10"    // allows mocking of classes without default constructor (together with CGLIB)
+    testRuntime group: 'org.testfx', name: 'openjfx-monocle', version: '8u76-b04'
+
+    test {
+        jvmArgs "-Dheadless=${project.hasProperty('headless') ? project.headless : false}"
+    }
+}
+

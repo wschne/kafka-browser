@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TextArea?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.rewe.digital.gui.controller.MessageDetailsController">
+    <TabPane AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                      AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+        <Tab text="Plain view" closable="false">
+            <TextArea fx:id="messageViewAsText" />
+        </Tab>
+        <Tab text="Tree view" closable="false">
+            <TreeView fx:id="messageViewAsTree"/>
+        </Tab>
+    </TabPane>
+</AnchorPane>
