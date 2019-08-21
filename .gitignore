@@ -26,3 +26,4 @@ bin/
 *.scm
 *.DS_Store
 spark-warehouse
+KafkaBrowserMain.log
