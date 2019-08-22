@@ -1,8 +1,5 @@
 language: java
 
-services:
-  - docker
-
 matrix:
   include:
     # Ubuntu Linux (trusty) / Oracle JDK 8 / Headed (Glass Robot) / HiDPI
