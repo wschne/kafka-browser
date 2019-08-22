@@ -11,6 +11,8 @@ import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
 import spock.lang.Unroll
 
+import static org.testfx.matcher.base.NodeMatchers.isVisible
+
 @Slf4j
 class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
     @Override
@@ -49,11 +51,15 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
         })
 
         then:
-        conditions.within(3) {
-            FxAssert.verifyThat('#connectionCheckLabel', { Label connectionCheckLabel ->
-                log.info "Connection status: $connectionCheckLabel.text"
-                connectionCheckLabel.text == expectedResult
-            })
+        conditions.within(10) {
+            FxAssert.verifyThat('#connectionCheckBox', isVisible())
+        }
+
+        and:
+        conditions.within(10) {
+            def label = loader.getController().connectionCheckLabel
+            log.info "Connection status: $label.text"
+            label.text == expectedResult
         }
 
         where:
