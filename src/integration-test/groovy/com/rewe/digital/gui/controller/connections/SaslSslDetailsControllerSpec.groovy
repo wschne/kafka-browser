@@ -50,10 +50,6 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
         })
 
         then:
-        conditions.within(10) {
-            FxAssert.verifyThat('#connectionCheckBox', isVisible())
-        }
-
         and:
         conditions.within(10) {
             loader.getController().connectionCheckLabel.text == expectedResult
