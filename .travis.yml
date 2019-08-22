@@ -39,7 +39,6 @@ jobs:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       script: ./gradlew jfxNative
       deploy:
-        if: tag IS present
         provider: releases
         api_key: $GITHUB_KEY
         file: "build/jfx/native/kafka-browser-1.0.deb"
@@ -55,7 +54,6 @@ jobs:
         - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
       script: ./gradlew jfxNative
       deploy:
-        if: tag IS present
         provider: releases
         api_key: $GITHUB_KEY
         file: "build/jfx/native/kafka-browser-1.0.dmg"
