@@ -36,7 +36,7 @@ jobs:
     - stage: "Tests"
       name: "Unit Tests"
       script: ./gradlew test
-    - script: ./gradlew integrationTest
+    - script: ./gradlew integrationTest -d
       name: "Integration Tests"
     - stage: GitHub Release
       script: ./gradlew jfxNative

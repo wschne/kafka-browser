@@ -4,12 +4,14 @@ import com.rewe.digital.AbstractKafkaSpec
 import com.rewe.digital.model.connection.BrokerSecuritySettings
 import com.rewe.digital.model.connection.BrokerSecurityType
 import com.rewe.digital.model.connection.ConnectionSettings
+import groovy.util.logging.Slf4j
 import javafx.scene.control.Label
 import javafx.scene.control.ListView
 import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
 import spock.lang.Unroll
 
+@Slf4j
 class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
     @Override
     String getSceneFileToTest() {
@@ -17,7 +19,7 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
     }
 
     @Unroll
-    def "Connect to kafka using a secured ssl_sasl connection should be #expectedResult"() {
+    def "Connect to kafka using a secured ssl_sasl connection of user #loginUser and PW #loginPassword, should be #expectedResult"() {
         given:
         def truststoreFilePath = getSecurityFile(trustStoreFileName)
         def securityConfig = new BrokerSecuritySettings(BrokerSecurityType.SASL_SSL,
@@ -49,6 +51,7 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
         then:
         conditions.within(3) {
             FxAssert.verifyThat('#connectionCheckLabel', { Label connectionCheckLabel ->
+                log.info "Connection status: $connectionCheckLabel.text"
                 connectionCheckLabel.text == expectedResult
             })
         }
