@@ -5,7 +5,6 @@ import com.rewe.digital.model.connection.BrokerSecuritySettings
 import com.rewe.digital.model.connection.BrokerSecurityType
 import com.rewe.digital.model.connection.ConnectionSettings
 import groovy.util.logging.Slf4j
-import javafx.scene.control.Label
 import javafx.scene.control.ListView
 import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
@@ -57,9 +56,7 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
 
         and:
         conditions.within(10) {
-            def label = loader.getController().connectionCheckLabel
-            log.info "Connection status: $label.text"
-            label.text == expectedResult
+            loader.getController().connectionCheckLabel.text == expectedResult
         }
 
         where:
