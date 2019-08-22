@@ -11,6 +11,7 @@ import org.testfx.framework.spock.ApplicationSpec
 import spock.util.concurrent.PollingConditions
 
 abstract class AbstractApplicationSpec extends ApplicationSpec {
+    public static final String USER_HOME_DIR = '/tmp/k-tests'
 
     static PollingConditions conditions = new PollingConditions()
 
@@ -26,7 +27,7 @@ abstract class AbstractApplicationSpec extends ApplicationSpec {
     abstract String getSceneFileToTest()
 
     static {
-        System.setProperty("user.home", '/tmp/k-tests')
+        System.setProperty("user.home", USER_HOME_DIR)
 
 //        if (Boolean.getBoolean("headless")) {
             System.setProperty("testfx.robot", "glass");
@@ -65,6 +66,6 @@ abstract class AbstractApplicationSpec extends ApplicationSpec {
     }
 
     def setup() {
-        new File('/tmp/k-tests').deleteDir()
+        new File(USER_HOME_DIR).deleteDir()
     }
 }

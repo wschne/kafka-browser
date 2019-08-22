@@ -20,14 +20,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
+@Slf4j
 public class OverallConnectionsController implements Initializable {
     public ListView configuredConnectionsList;
     public TextField clusterNameField;
@@ -36,6 +39,7 @@ public class OverallConnectionsController implements Initializable {
     public Label connectionCheckLabel;
     public HBox connectionCheckBox;
     public Button connectButton;
+    public VBox connectionDetails;
 
     @Inject
     SaslSslDetailsController saslSslDetailsController;
@@ -51,13 +55,14 @@ public class OverallConnectionsController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        resetSettingsForm();
         configuredConnectionsList.setCellFactory(param -> new ConnectionItemFactory());
-        configuredConnectionsList.setItems(FXCollections.observableArrayList(kafkaConnectionRepository.getAll()));
         configuredConnectionsList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         configuredConnectionsList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 ConnectionSettings selectedSettings = (ConnectionSettings) newValue;
                 Platform.runLater(() -> {
+                    connectionDetails.setDisable(false);
                     clusterNameField.setText(selectedSettings.getName());
                     bootstrapServersField.setText(selectedSettings.getBootstrapServer());
                     connectionCheckBox.setVisible(false);
@@ -67,6 +72,9 @@ public class OverallConnectionsController implements Initializable {
                     }
                 });
             }
+        });
+        Platform.runLater(() -> {
+            configuredConnectionsList.setItems(FXCollections.observableArrayList(kafkaConnectionRepository.getAll()));
         });
     }
 
@@ -161,12 +169,17 @@ public class OverallConnectionsController implements Initializable {
     }
 
     private void resetSettingsForm() {
-        clusterNameField.setText("");
-        bootstrapServersField.setText("");
-        connectionCheckBox.setVisible(false);
-        connectionCheckLabel.setText("");
-        connectButton.setGraphic(null);
-        saslSslDetailsController.resetSettings();
+        Platform.runLater(() -> {
+            clusterNameField.setText("");
+            bootstrapServersField.setText("");
+            connectionCheckBox.setVisible(false);
+            connectionCheckLabel.setText("");
+            connectButton.setGraphic(null);
+            saslSslDetailsController.resetSettings();
+            configuredConnectionsList.getSelectionModel().clearSelection();
+            configuredConnectionsList.getItems().clear();
+            connectionDetails.setDisable(true);
+        });
     }
 
     public void checkCurrentSettings(ActionEvent actionEvent) {
@@ -204,6 +217,7 @@ public class OverallConnectionsController implements Initializable {
             }
         };
         ConnectionSettings connectionSettings = getConnectionSettings();
+        log.info("Check connection settings {}", connectionSettings);
         checkConnectionTask.execute(connectionSettings);
     }
 
