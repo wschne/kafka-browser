@@ -1,5 +1,9 @@
 language: java
 
+sudo: required
+services:
+  - docker
+
 matrix:
   include:
     # Ubuntu Linux (trusty) / Oracle JDK 8 / Headed (Glass Robot) / HiDPI
@@ -8,13 +12,6 @@ matrix:
       jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-    # macOS / Oracle JDK 8 / Headless
-    - os: osx
-      osx_image: xcode9.3
-      jdk: oraclejdk8
-      env:
-        - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
-    # Headed macOS is not currently possible on Travis.
 
 addons:
   apt:
@@ -34,13 +31,34 @@ jobs:
       script: ./gradlew test
     - script: ./gradlew integrationTest -i
       name: "Integration Tests"
-    - stage: GitHub Release
+    - stage: GitHub Release of Linux build
+      os: linux
+      dist: trusty
+      jdk: oraclejdk8
+      env:
+        - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       script: ./gradlew jfxNative
       deploy:
         if: tag IS present
         provider: releases
         api_key: $GITHUB_KEY
         file: "build/jfx/native/kafka-browser-1.0.deb"
+        skip_cleanup: true
+        draft: true
+        on:
+          tags: true
+    - stage: GitHub Release of MacOS build
+      os: osx
+      osx_image: xcode9.3
+      jdk: oraclejdk8
+      env:
+        - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
+      script: ./gradlew jfxNative
+      deploy:
+        if: tag IS present
+        provider: releases
+        api_key: $GITHUB_KEY
+        file: "build/jfx/native/kafka-browser-1.0.dmg"
         skip_cleanup: true
         draft: true
         on:
