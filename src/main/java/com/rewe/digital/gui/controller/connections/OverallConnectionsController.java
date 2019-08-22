@@ -98,7 +98,7 @@ public class OverallConnectionsController implements Initializable {
     }
 
     public void connectByDoubleClick(MouseEvent mouseEvent) {
-        if(mouseEvent.getClickCount() > 1) {
+        if (mouseEvent.getClickCount() > 1) {
             connectUsingCurrentSettings(null);
         }
     }
@@ -201,15 +201,18 @@ public class OverallConnectionsController implements Initializable {
 
             @Override
             public void onPostExecute(Object connectionSuccessful) {
-                Platform.runLater(() -> {
-                    if (connectionSuccessful instanceof Boolean && (Boolean) connectionSuccessful) {
+                log.info("Connection check successful: {}", connectionSuccessful);
+                if (connectionSuccessful instanceof Boolean && (Boolean) connectionSuccessful) {
+                    Platform.runLater(() -> {
                         connectionCheckLabel.setText("success");
                         connectionCheckLabel.setTextFill(Paint.valueOf("green"));
-                    } else {
+                    });
+                } else {
+                    Platform.runLater(() -> {
                         connectionCheckLabel.setText("failed");
                         connectionCheckLabel.setTextFill(Paint.valueOf("red"));
-                    }
-                });
+                    });
+                }
             }
 
             @Override
