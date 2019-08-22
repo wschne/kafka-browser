@@ -56,7 +56,9 @@ jobs:
       deploy:
         provider: releases
         api_key: $GITHUB_KEY
-        file: "build/jfx/native/kafka-browser-1.0.dmg"
+        file:
+         - "build/jfx/native/kafka-browser-1.0.pkg"
+         - "build/jfx/native/kafka-browser-1.0.app"
         skip_cleanup: true
         draft: true
         on:
