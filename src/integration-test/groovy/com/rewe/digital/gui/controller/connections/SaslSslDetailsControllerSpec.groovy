@@ -50,7 +50,6 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
         })
 
         then:
-        and:
         conditions.within(10) {
             loader.getController().connectionCheckLabel.text == expectedResult
         }
