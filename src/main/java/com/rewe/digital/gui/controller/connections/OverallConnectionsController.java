@@ -203,15 +203,11 @@ public class OverallConnectionsController implements Initializable {
             public void onPostExecute(Object connectionSuccessful) {
                 log.info("Connection check successful: {}", connectionSuccessful);
                 if (connectionSuccessful instanceof Boolean && (Boolean) connectionSuccessful) {
-                    Platform.runLater(() -> {
-                        connectionCheckLabel.setText("success");
-                        connectionCheckLabel.setTextFill(Paint.valueOf("green"));
-                    });
+                    connectionCheckLabel.setText("success");
+                    connectionCheckLabel.setTextFill(Paint.valueOf("green"));
                 } else {
-                    Platform.runLater(() -> {
-                        connectionCheckLabel.setText("failed");
-                        connectionCheckLabel.setTextFill(Paint.valueOf("red"));
-                    });
+                    connectionCheckLabel.setText("failed");
+                    connectionCheckLabel.setTextFill(Paint.valueOf("red"));
                 }
             }
 
