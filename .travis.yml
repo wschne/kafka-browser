@@ -8,7 +8,6 @@ matrix:
   include:
     # Ubuntu Linux (trusty) / Oracle JDK 8 / Headed (Glass Robot) / HiDPI
     - os: linux
-      dist: trusty
       jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
@@ -33,7 +32,6 @@ jobs:
       name: "Integration Tests"
     - stage: GitHub Release of Linux build
       os: linux
-      dist: trusty
       jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
