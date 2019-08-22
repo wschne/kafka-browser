@@ -24,6 +24,27 @@ repositories {
     mavenCentral()
 }
 
+//Configures the classpath and the source and resource directories
+//of the integrationTest task.
+sourceSets {
+    //Declaring this source set creates compile time and runtime configurations for it.
+    integrationTest {
+        groovy {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/groovy')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+//Configures the compile and runtime configurations for our integration tests
+//and includes the dependencies of the test task.
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
 apply plugin: 'javafx-gradle-plugin'
 apply plugin: "io.franzbecker.gradle-lombok"
 
@@ -73,9 +94,25 @@ dependencies {
     testRuntime "org.objenesis:objenesis:3.0.1"    // allows mocking of classes without default constructor (together with CGLIB)
     testRuntime "cglib:cglib-nodep:3.2.10"    // allows mocking of classes without default constructor (together with CGLIB)
     testRuntime group: 'org.testfx', name: 'openjfx-monocle', version: '8u76-b04'
-
-    test {
-        jvmArgs "-Dheadless=${project.hasProperty('headless') ? project.headless : false}"
-    }
 }
 
+//Create the task that runs the integration tests found from the
+//configured source directory and uses the correct classpath.
+task integrationTest(type: Test) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false }
+}
+
+//Ensure that the check task fails the build if there are failing integration tests.
+check.dependsOn integrationTest
+//Ensure that our unit tests are run before our integration tests
+integrationTest.mustRunAfter test
+
+test {
+    jvmArgs "-Dheadless=${project.hasProperty('headless') ? project.headless : false}"
+}
+
+integrationTest {
+    jvmArgs "-Dheadless=${project.hasProperty('headless') ? project.headless : false}"
+}

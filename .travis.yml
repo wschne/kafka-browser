@@ -31,23 +31,30 @@ before_install:
 
 install: true
 
-script:
-  - ./gradlew test jfxNative
+jobs:
+  include:
+    - stage: "Tests"
+      name: "Unit Tests"
+      script: ./gradlew test
+    - script: ./gradlew integrationTest
+      name: "Integration Tests"
+    - stage: GitHub Release
+      script: ./gradlew jfxNative
+      deploy:
+        if: branch = master
+        provider: releases
+        api_key: $GITHUB_KEY
+        file: "build/jfx/native/kafka-browser-1.0.deb"
+        skip_cleanup: true
+        draft: true
+        on:
+          tags: true
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
   - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.bin
   - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.lock
-
-deploy:
-  provider: releases
-  api_key: $GITHUB_KEY
-  file: "build/jfx/native/kafka-browser-1.0.deb"
-  skip_cleanup: true
-  draft: true
-  on:
-    tags: true
 
 cache:
   directories:
