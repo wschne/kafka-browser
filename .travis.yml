@@ -12,13 +12,13 @@ matrix:
       jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-#    # macOS / Oracle JDK 8 / Headless
-#    - os: osx
-#      osx_image: xcode9.3
-#      jdk: oraclejdk8
-#      env:
-#        - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
-#    # Headed macOS is not currently possible on Travis.
+    # macOS / Oracle JDK 8 / Headless
+    - os: osx
+      osx_image: xcode9.3
+      jdk: oraclejdk8
+      env:
+        - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
+    # Headed macOS is not currently possible on Travis.
 
 addons:
   apt:
@@ -41,7 +41,7 @@ jobs:
     - stage: GitHub Release
       script: ./gradlew jfxNative
       deploy:
-        if: branch = master
+        if: tag IS present
         provider: releases
         api_key: $GITHUB_KEY
         file: "build/jfx/native/kafka-browser-1.0.deb"
