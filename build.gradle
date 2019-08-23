@@ -18,7 +18,10 @@ plugins {
 group 'com.rewe.digital'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
+compileJava   {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 
 repositories {
     mavenCentral()
