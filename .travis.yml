@@ -6,8 +6,8 @@ services:
 
 matrix:
   include:
-    # Ubuntu Linux (trusty) / Oracle JDK 8 / Headed (Glass Robot) / HiDPI
     - os: linux
+      dist: bionic
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
 
@@ -18,14 +18,7 @@ addons:
       - fakeroot
 
 before_install:
-  - export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start
-  - rm -rf ~/.linuxbrew
-  - yes | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)"
-  - export PATH="$HOME/.linuxbrew/bin:$PATH"
-  - export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
-  - export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
-  - brew install jdk
-  - export JAVA_HOME=/home/travis/.linuxbrew/Cellar/jdk/1.8.0-221
+  - if [[ "${TRAVIS_OS_NAME}" == linux ]]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
 
 install: true
 
@@ -38,6 +31,7 @@ jobs:
       name: "Integration Tests"
     - stage: GitHub Release of Linux build
       os: linux
+      dist: bionic
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       script: ./gradlew jfxNative
