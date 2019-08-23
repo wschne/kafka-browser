@@ -16,19 +16,16 @@ jobs:
   include:
     - stage: "Tests"
       os: linux
-      dist: bionic
       jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       name: "Unit Tests"
       script: ./gradlew test
     - script: ./gradlew integrationTest -i
-      dist: bionic
       jdk: oraclejdk8
       name: "Integration Tests"
     - stage: GitHub Release of Linux build
       os: linux
-      dist: bionic
       jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
