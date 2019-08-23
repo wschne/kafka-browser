@@ -4,17 +4,9 @@ sudo: required
 services:
   - docker
 
-matrix:
-  include:
-    - os: linux
-      dist: bionic
-      env:
-        - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-
 addons:
   apt:
     packages:
-      - oracle-java8-installer
       - fakeroot
 
 before_install:
@@ -25,6 +17,11 @@ install: true
 jobs:
   include:
     - stage: "Tests"
+      os: linux
+      dist: bionic
+      jdk: oraclejdk8
+      env:
+        - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       name: "Unit Tests"
       script: ./gradlew test
     - script: ./gradlew integrationTest -i
@@ -32,6 +29,7 @@ jobs:
     - stage: GitHub Release of Linux build
       os: linux
       dist: bionic
+      jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       script: ./gradlew jfxNative
