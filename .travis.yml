@@ -17,19 +17,19 @@ jobs:
     - stage: "Tests"
       os: linux
       dist: bionic
-      jdk: oraclejdk9
+      jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       name: "Unit Tests"
       script: ./gradlew test
     - script: ./gradlew integrationTest -i
       dist: bionic
-      jdk: oraclejdk9
+      jdk: oraclejdk8
       name: "Integration Tests"
     - stage: GitHub Release of Linux build
       os: linux
       dist: bionic
-      jdk: oraclejdk9
+      jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       script: ./gradlew jfxNative
@@ -44,7 +44,7 @@ jobs:
     - stage: GitHub Release of MacOS build
       os: osx
       osx_image: xcode9.3
-      jdk: oraclejdk9
+      jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
       script: ./gradlew jfxNative
