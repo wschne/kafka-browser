@@ -12,15 +12,6 @@ addons:
 
 install: true
 
-before_install:
-  - rm -rf ~/.linuxbrew
-  - yes | sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
-  - export PATH="$HOME/.linuxbrew/bin:$PATH"
-  - export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
-  - export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
-  - brew install jdk
-  - export JAVA_HOME=/home/travis/.linuxbrew/Cellar/jdk/1.8.0-222
-
 jobs:
   include:
     - stage: "Tests"
