@@ -9,6 +9,7 @@ addons:
   apt:
     packages:
       - fakeroot
+      - oracle-java8-installer
 
 install: true
 
@@ -19,6 +20,10 @@ jobs:
       jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
+      addons:
+        apt:
+          packages:
+            - oracle-java8-installer
       name: "Unit Tests"
       script: ./gradlew test
     - script: ./gradlew integrationTest -i
