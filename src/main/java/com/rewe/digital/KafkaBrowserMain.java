@@ -11,11 +11,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.apache.spark.sql.SparkSession;
-import org.fuin.ext4logback.LogbackStandalone;
-import org.fuin.ext4logback.NewLogConfigFileParams;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Objects;
@@ -37,8 +34,6 @@ public class KafkaBrowserMain extends Application {
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getClassLoader().getResource("styles.css").toExternalForm());
-
-        new LogbackStandalone().init(new File("logback.xml"), new NewLogConfigFileParams("com.rewe.digital", "KafkaBrowserMain"));
 
         stage.setTitle("Kafka-Browser [Connections] v0.0.1");
         stage.setScene(scene);
