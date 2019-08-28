@@ -81,11 +81,9 @@ dependencies {
     compile 'com.google.guava:guava:28.0-jre'
     compile group: 'org.ow2.asm', name: 'asm', version: '7.0'
 
-    compile ('org.apache.spark:spark-core_2.11:2.4.3')
-    compile group: 'org.apache.spark', name: 'spark-streaming_2.11', version: '2.4.3'
-    compile group: 'org.apache.spark', name: 'spark-streaming-kafka-0-10_2.11', version: '2.4.3'
-    compile (group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.4.3')
-    compile group: 'org.apache.spark', name: 'spark-sql-kafka-0-10_2.11', version: '2.4.3'
+    compile ('org.apache.spark:spark-core_2.12:2.4.3')
+    compile group: 'org.apache.spark', name: 'spark-streaming_2.12', version: '2.4.3'
+    compile (group: 'org.apache.spark', name: 'spark-sql_2.12', version: '2.4.3')
 
     runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:win"
     runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:linux"
