@@ -1,4 +1,5 @@
 language: java
+jdk: openjdk11
 
 sudo: required
 services:
@@ -12,28 +13,29 @@ addons:
 
 install: true
 
+
 jobs:
   include:
-    - stage: "Tests"
-      os: linux
-      jdk: oraclejdk8
-      env:
-        - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-      name: "Unit Tests"
-      script: ./gradlew test
-    - script: ./gradlew integrationTest -i
-      jdk: oraclejdk8
-      name: "Integration Tests"
+     - stage: "Tests"
+       os: linux
+       env:
+         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
+       name: "Unit Tests"
+       script: ./gradlew test
+#    - script: ./gradlew integrationTest -i
+#      name: "Integration Tests"
     - stage: GitHub Release of Linux build
       os: linux
-      jdk: oraclejdk8
+      dist: xenial
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-      script: ./gradlew jfxNative
+      script: cd build_image/ && ./build_image.sh && cd ..
       deploy:
         provider: releases
         api_key: $GITHUB_KEY
-        file: "build/jfx/native/kafka-browser-1.0.deb"
+        file:
+          - "build/native/kafka-browser-1.0.rpm"
+          - "build/native/kafka-browser-1.0.deb"
         skip_cleanup: true
         draft: true
         on:
@@ -41,16 +43,15 @@ jobs:
     - stage: GitHub Release of MacOS build
       os: osx
       osx_image: xcode9.3
-      jdk: oraclejdk8
       env:
         - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
-      script: ./gradlew jfxNative
+      script: cd build_image/ && ./build_image.sh && cd ..
       deploy:
         provider: releases
         api_key: $GITHUB_KEY
         file:
-         - "build/jfx/native/kafka-browser-1.0.pkg"
-         - "build/jfx/native/kafka-browser-1.0.app"
+         - "build/native/kafka-browser-1.0.pkg"
+         - "build/native/kafka-browser-1.0.dmg"
         skip_cleanup: true
         draft: true
         on:
@@ -69,4 +70,4 @@ cache:
     - $HOME/.m2
 
 after_script:
-  - ls -la build/jfx/native
+  - ls -la build/native

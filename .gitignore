@@ -27,3 +27,9 @@ bin/
 *.DS_Store
 spark-warehouse
 KafkaBrowserMain.log
+kafka_browser_jvm
+javafx-jmods-*
+logback.xml
+jpackager/jdk.packager.jar
+jpackager/packager
+build_image/tmp

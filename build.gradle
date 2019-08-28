@@ -2,6 +2,7 @@ buildscript {
     dependencies {
         classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
         classpath "io.franzbecker:gradle-lombok:2.0"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
     }
     repositories {
         mavenLocal()
@@ -13,6 +14,7 @@ plugins {
     id 'java'
     id 'application'
     id 'groovy'
+    id "org.openjfx.javafxplugin" version "0.0.8"
 }
 
 group 'com.rewe.digital'
@@ -48,21 +50,20 @@ configurations {
     integrationTestRuntime.extendsFrom testRuntime
 }
 
-apply plugin: 'javafx-gradle-plugin'
+//apply plugin: 'javafx-gradle-plugin'
 apply plugin: "io.franzbecker.gradle-lombok"
+apply plugin: 'com.github.johnrengelman.shadow'
 
 mainClassName = 'com.rewe.digital.KafkaBrowserMain'
 
-jfx {
-    mainClass = 'com.rewe.digital.KafkaBrowserMain'
-    vendor = "REWE-Digital"
-    appName = "kafka-browser"
+application {
+    mainClassName = "com.rewe.digital.KafkaBrowserMain"
+    applicationName = 'kafka-browser'
+}
 
-    updateExistingJar = true
-    addPackagerJar = true
-    copyAdditionalAppResourcesToJar = true
-    skipCopyingDependencies = false
-    useLibFolderContentForManifestClasspath = true
+javafx {
+    version = "12.0.2"
+    modules = [ 'javafx.controls','javafx.fxml' ]
 }
 
 configurations.all {
@@ -78,15 +79,20 @@ dependencies {
     compile group: 'org.awaitility', name: 'awaitility', version: '3.1.6'
     compile 'org.fuin:ext4logback:0.2.0'
     compile 'com.google.guava:guava:28.0-jre'
+    compile group: 'org.ow2.asm', name: 'asm', version: '7.0'
 
     compile ('org.apache.spark:spark-core_2.11:2.4.3')
     compile group: 'org.apache.spark', name: 'spark-streaming_2.11', version: '2.4.3'
     compile group: 'org.apache.spark', name: 'spark-streaming-kafka-0-10_2.11', version: '2.4.3'
     compile (group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.4.3')
     compile group: 'org.apache.spark', name: 'spark-sql-kafka-0-10_2.11', version: '2.4.3'
+
+    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:win"
+    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:linux"
+    runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:mac"
     
-    testCompile group: "org.testfx", name: "testfx-core", version: "4.0.15-alpha"
-    testCompile group: "org.testfx", name: "testfx-spock", version: "4.0.15-alpha"
+    testCompile group: "org.testfx", name: "testfx-core", version: "4.0.16-alpha"
+    testCompile group: "org.testfx", name: "testfx-spock", version: "4.0.16-alpha"
     testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.5.6'
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.3-groovy-2.5'
     testCompile group: 'org.testcontainers', name: 'kafka', version: '1.11.3'
@@ -96,7 +102,17 @@ dependencies {
     // optional dependencies for using Spock
     testRuntime "org.objenesis:objenesis:3.0.1"    // allows mocking of classes without default constructor (together with CGLIB)
     testRuntime "cglib:cglib-nodep:3.2.10"    // allows mocking of classes without default constructor (together with CGLIB)
-    testRuntime group: 'org.testfx', name: 'openjfx-monocle', version: '8u76-b04'
+    testRuntime group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.rewe.digital.KafkaBrowserMain'
+    }
+}
+shadowJar {
+    mergeServiceFiles()
+    zip64 true
 }
 
 //Create the task that runs the integration tests found from the
@@ -119,3 +135,4 @@ test {
 integrationTest {
     jvmArgs "-Dheadless=${project.hasProperty('headless') ? project.headless : false}"
 }
+
