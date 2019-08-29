@@ -32,8 +32,8 @@ jobs:
         provider: releases
         api_key: $GITHUB_KEY
         file:
-          - "build/native/kafka-browser-1.0.rpm"
-          - "build/native/kafka-browser-1.0.deb"
+          - 'build/native/kafka-browser-${TRAVIS_TAG}.rpm'
+          - 'build/native/kafka-browser-${TRAVIS_TAG}.deb'
         skip_cleanup: true
         draft: true
         on:
@@ -49,8 +49,8 @@ jobs:
         provider: releases
         api_key: $GITHUB_KEY
         file:
-         - "build/native/kafka-browser-1.0.pkg"
-         - "build/native/kafka-browser-1.0.dmg"
+         - 'build/native/kafka-browser-${TRAVIS_TAG}.pkg'
+         - 'build/native/kafka-browser-${TRAVIS_TAG}.dmg'
         skip_cleanup: true
         draft: true
         on:
