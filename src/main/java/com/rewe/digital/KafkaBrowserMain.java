@@ -19,6 +19,8 @@ import java.util.Objects;
 
 public class KafkaBrowserMain extends Application {
 
+    public static String APPLICATION_VERSION;
+
     @Inject
     private FXMLLoader fxmlLoader;
 
@@ -35,13 +37,16 @@ public class KafkaBrowserMain extends Application {
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getClassLoader().getResource("styles.css").toExternalForm());
 
-        stage.setTitle("Kafka-Browser [Connections] v0.0.1");
+        stage.setTitle("Kafka-Browser [Connections] (" + APPLICATION_VERSION + ")");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
     }
 
     public static void main(String[] args) {
+        if (args != null && args.length >= 1) {
+            APPLICATION_VERSION = args[0];
+        }
         launch(args);
     }
 

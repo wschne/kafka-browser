@@ -22,11 +22,12 @@ jobs:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
       script: ./gradlew test
     - stage: GitHub Release of Linux build
+      if: tag IS present
       os: linux
       dist: xenial
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-      script: cd build_image/ && ./build_image.sh && cd ..
+      script: cd build_image/ && ./build_image.sh ${TRAVIS_TAG} && cd ..
       deploy:
         provider: releases
         api_key: $GITHUB_KEY
@@ -38,11 +39,12 @@ jobs:
         on:
           tags: true
     - stage: GitHub Release of MacOS build
+      if: tag IS present
       os: osx
       osx_image: xcode9.3
       env:
         - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.verbose=true"
-      script: cd build_image/ && ./build_image.sh && cd ..
+      script: cd build_image/ && ./build_image.sh ${TRAVIS_TAG} && cd ..
       deploy:
         provider: releases
         api_key: $GITHUB_KEY

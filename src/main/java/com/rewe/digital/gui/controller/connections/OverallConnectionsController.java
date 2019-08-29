@@ -1,5 +1,6 @@
 package com.rewe.digital.gui.controller.connections;
 
+import com.rewe.digital.KafkaBrowserMain;
 import com.rewe.digital.gui.StageFactory;
 import com.rewe.digital.gui.utils.Sleeper;
 import com.rewe.digital.kafka.KafkaConnectionRepository;
@@ -143,7 +144,7 @@ public class OverallConnectionsController implements Initializable {
                         connectionCheckLabel.setTextFill(Paint.valueOf("green"));
 
                         Sleeper.executeAfterSeconds(1, () -> {
-                            Stage browser = stageFactory.createStage("scenes/kafka_browser.fxml", "styles.css", "Kafka browser");
+                            Stage browser = stageFactory.createStage("scenes/kafka_browser.fxml", "styles.css", "Kafka browser (" + KafkaBrowserMain.APPLICATION_VERSION + ")");
 
                             browser.setWidth(1724);
                             browser.setHeight(800);

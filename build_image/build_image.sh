@@ -1,5 +1,9 @@
 #!/bin/bash
 
+VERSION_TO_BE_USED=$1
+
+if [ -z ${VERSION_TO_BE_USED} ]; then echo "Version of package is not provided. Quit"; exit 1; else echo "Version to be used ${VERSION_TO_BE_USED}"; fi
+
 echo "Cleanup old artifacts"
 
 rm -rf tmp/
@@ -14,4 +18,4 @@ cd ..
 cd build_image/
 
 ./create_jvm.sh
-./build_package.sh
+./build_package.sh ${VERSION_TO_BE_USED}
