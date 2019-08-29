@@ -20,10 +20,7 @@ jobs:
       os: linux
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-      name: "Unit Tests"
       script: ./gradlew test
-#    - script: ./gradlew integrationTest -i
-#      name: "Integration Tests"
     - stage: GitHub Release of Linux build
       os: linux
       dist: xenial

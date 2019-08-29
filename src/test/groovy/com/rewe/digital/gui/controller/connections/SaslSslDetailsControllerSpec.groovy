@@ -6,11 +6,8 @@ import com.rewe.digital.model.connection.BrokerSecurityType
 import com.rewe.digital.model.connection.ConnectionSettings
 import groovy.util.logging.Slf4j
 import javafx.scene.control.ListView
-import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
 import spock.lang.Unroll
-
-import static org.testfx.matcher.base.NodeMatchers.isVisible
 
 @Slf4j
 class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
