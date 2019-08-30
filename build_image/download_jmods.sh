@@ -1,7 +1,7 @@
 #!/bin/bash
 
-JAVA_FX_JMODS_MAC=javafx-11-0-2-jmods-mac
-JAVA_FX_JMODS_LINUX=javafx-11-0-2-jmods-linux
+JAVA_FX_JMODS_MAC=javafx-13-ea-jmods-mac
+JAVA_FX_JMODS_LINUX=javafx-13-ea-jmods-linux
 
 downloadAndExtractFile()
 {

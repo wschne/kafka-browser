@@ -2,7 +2,7 @@
 
 JPACKAGER_MAC=jdk.packager-osx.zip
 JPACKAGER_LINUX=jdk.packager-linux.zip
-JAVA_FX_JMODS_FILE_NAME=javafx-jmods-11.0.2
+JAVA_FX_JMODS_FILE_NAME=javafx-jmods-13
 CUSTOM_JVM_PATH=kafka_browser_jvm
 
 VERSION_TO_BE_USED=$1
