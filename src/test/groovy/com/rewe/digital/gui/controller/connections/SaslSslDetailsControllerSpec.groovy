@@ -31,9 +31,9 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
                 loginPassword)
         def connectionSettings = new ConnectionSettings(UUID.randomUUID(),
                 'sasl_ssl_config',
-                kafkaContainer.getSaslSslBootstrapServers(),
+                firstKafkaContainer.getSaslSslBootstrapServers(),
                 securityConfig)
-        fileStorageRepository.writeDataToFile('connections', connectionSettings.fileName, connectionSettings)
+        connectionRepository.save(connectionSettings)
 
         when:
         FxToolkit.setupStage({

@@ -4,6 +4,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -19,6 +20,14 @@ public class StageFactory {
     private FXMLLoader fxmlLoader;
 
     private Map<String, Stage> previouslyCreatedStages = new ConcurrentHashMap<>();
+
+    public void openOverallConnectionsStage(final String applicationVersion) {
+        val stage = this.createStage("scenes/connections/overall_connections.fxml",
+                "styles.css",
+                "Kafka-Browser [Connections] (" + applicationVersion + ")");
+        stage.setResizable(false);
+        stage.show();
+    }
 
     public Stage createStage(final String sceneFile,
                              final String sceneCssFile,

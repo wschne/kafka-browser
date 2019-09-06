@@ -26,9 +26,6 @@ public class KafkaQueryExecutor {
     @Inject
     SparkSession spark;
 
-    @Inject
-    KafkaConnector kafkaConnector;
-
     public List<Map> executeQuery(Query query) throws AnalysisException {
         return spark.sql(query.getQuery())
                 .toJSON()

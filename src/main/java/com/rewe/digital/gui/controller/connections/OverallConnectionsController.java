@@ -1,10 +1,12 @@
 package com.rewe.digital.gui.controller.connections;
 
+import com.google.common.eventbus.EventBus;
 import com.rewe.digital.KafkaBrowserMain;
 import com.rewe.digital.gui.StageFactory;
 import com.rewe.digital.gui.utils.Sleeper;
 import com.rewe.digital.kafka.KafkaConnectionRepository;
 import com.rewe.digital.kafka.KafkaConsumerFactory;
+import com.rewe.digital.messaging.events.KafkaConnectionSelectedEvent;
 import com.rewe.digital.model.connection.ConnectionSettings;
 import com.victorlaerte.asynctask.AsyncTask;
 import javafx.application.Platform;
@@ -53,6 +55,9 @@ public class OverallConnectionsController implements Initializable {
 
     @Inject
     StageFactory stageFactory;
+
+    @Inject
+    EventBus eventBus;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -148,6 +153,8 @@ public class OverallConnectionsController implements Initializable {
 
                             browser.setWidth(1724);
                             browser.setHeight(800);
+
+                            eventBus.post(new KafkaConnectionSelectedEvent());
 
                             browser.show();
 

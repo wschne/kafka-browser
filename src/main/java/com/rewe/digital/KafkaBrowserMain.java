@@ -3,26 +3,19 @@ package com.rewe.digital;
 import com.gluonhq.ignite.guice.GuiceContext;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
+import com.rewe.digital.gui.StageFactory;
 import com.rewe.digital.messaging.KafkaMessageHandler;
 import com.rewe.digital.messaging.MessageHandler;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
+import lombok.val;
 import org.apache.spark.sql.SparkSession;
 
-import javax.inject.Inject;
-import java.net.URL;
 import java.util.Arrays;
-import java.util.Objects;
 
 public class KafkaBrowserMain extends Application {
 
     public static String APPLICATION_VERSION;
-
-    @Inject
-    private FXMLLoader fxmlLoader;
 
     private GuiceContext context = new GuiceContext(this, () -> Arrays.asList(new GuiceModule()));
 
@@ -30,17 +23,8 @@ public class KafkaBrowserMain extends Application {
     public void start(Stage stage) throws Exception {
         context.init();
 
-        final URL location = Objects.requireNonNull(getClass().getClassLoader().getResource("scenes/connections/overall_connections.fxml"));
-        fxmlLoader.setLocation(location);
-        Parent root = fxmlLoader.load();
-
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getClassLoader().getResource("styles.css").toExternalForm());
-
-        stage.setTitle("Kafka-Browser [Connections] (" + APPLICATION_VERSION + ")");
-        stage.setScene(scene);
-        stage.setResizable(false);
-        stage.show();
+        val stageFactory = context.getInstance(StageFactory.class);
+        stageFactory.openOverallConnectionsStage(KafkaBrowserMain.APPLICATION_VERSION);
     }
 
     public static void main(String[] args) {
@@ -59,6 +43,7 @@ public class KafkaBrowserMain extends Application {
                     .appName("Kafka-Browser")
                     .config("spark.driver.host", "localhost")
                     .config("spark.driver.bindAddress","127.0.0.1")
+                    .config("hadoop.home.dir","/tmp")
                     .getOrCreate();
             bind(SparkSession.class).toInstance(sparkSession);
             bind(EventBus.class).toInstance(new EventBus());
