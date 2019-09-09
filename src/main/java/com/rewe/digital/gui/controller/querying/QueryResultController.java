@@ -4,17 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.rewe.digital.gui.controls.helper.QueryResultTableColumnBuilder;
 import com.rewe.digital.kafka.KafkaQueryExecutor;
 import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
 import com.rewe.digital.messaging.events.ShowMessageDetailsEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryResultEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryingErrorEvent;
-import com.victorlaerte.asynctask.AsyncTask;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
@@ -25,10 +23,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.InputMethodEvent;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.types.StructType;
 
 import javax.inject.Inject;
@@ -65,11 +61,18 @@ public class QueryResultController implements Initializable {
     @FXML
     public TextField filterSearchResultInput;
 
-    @Inject
-    private EventBus eventBus;
+    private final EventBus eventBus;
+    private final KafkaQueryExecutor kafkaQueryExecutor;
+    private final QueryResultTableColumnBuilder tableColumnBuilder;
 
     @Inject
-    private KafkaQueryExecutor kafkaQueryExecutor;
+    public QueryResultController(final EventBus eventBus,
+                                 final KafkaQueryExecutor kafkaQueryExecutor,
+                                 final QueryResultTableColumnBuilder tableColumnBuilder) {
+        this.eventBus = eventBus;
+        this.kafkaQueryExecutor = kafkaQueryExecutor;
+        this.tableColumnBuilder = tableColumnBuilder;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -191,31 +194,9 @@ public class QueryResultController implements Initializable {
                 .map(Map::keySet);
 
         columns.ifPresent(cols -> {
-            List<TableColumn<Map<String, Object>, String>> tableColumns = cols.stream().map(column -> {
-                TableColumn<Map<String, Object>, String> tableColumn = new TableColumn<>(column);
-                tableColumn.setCellValueFactory(p -> {
-                    final Object columnValue = p.getValue().get(column);
-                    if (columnValue instanceof String) {
-                        return new SimpleStringProperty((String) columnValue);
-                    } else if (columnValue instanceof Map) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        try {
-                            String json = mapper.writeValueAsString(columnValue);
-                            int maxSize = 120;
-                            if (json.length() > maxSize) {
-                                json = json.substring(0, maxSize) + " ...";
-                            }
-                            return new SimpleStringProperty(json);
-                        } catch (JsonProcessingException e) {
-                            e.printStackTrace();
-                            return new SimpleStringProperty("Error while reading value");
-                        }
-                    } else {
-                        return new SimpleStringProperty(String.valueOf(columnValue));
-                    }
-                });
-                return tableColumn;
-            }).collect(Collectors.toList());
+            List<TableColumn<Map<String, Object>, String>> tableColumns = cols.stream()
+                    .map(tableColumnBuilder::buildTableColumn)
+                    .collect(Collectors.toList());
 
             Platform.runLater(
                     () -> {
