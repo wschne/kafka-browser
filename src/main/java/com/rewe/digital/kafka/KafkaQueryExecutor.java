@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewe.digital.model.Query;
+import lombok.val;
 import org.apache.commons.lang.StringUtils;
 import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.Dataset;
@@ -23,17 +24,21 @@ import java.util.stream.Collectors;
 @Named
 public class KafkaQueryExecutor {
 
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final SparkSession spark;
+
     @Inject
-    SparkSession spark;
+    public KafkaQueryExecutor(final SparkSession spark) {
+        this.spark = spark;
+    }
 
     public List<Map> executeQuery(Query query) throws AnalysisException {
-        return spark.sql(query.getQuery())
+        return spark.sql(getNormalizedQuery(query))
                 .toJSON()
                 .collectAsList()
                 .stream()
                 .map(s -> {
                     try {
-                        ObjectMapper mapper = new ObjectMapper();
                         final JsonNode jsonNode = mapper.readTree(s);
                         return mapper.convertValue(jsonNode, Map.class);
                     } catch (JsonProcessingException e) {
@@ -43,6 +48,12 @@ public class KafkaQueryExecutor {
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String getNormalizedQuery(final Query query) {
+        val topicName = query.getTopic();
+        val normalizedTopic = topicName.replace("-", "_");
+        return query.getQuery().replace(topicName, normalizedTopic);
     }
 
     public Optional<StructType> getTopicSchema(String topic) {

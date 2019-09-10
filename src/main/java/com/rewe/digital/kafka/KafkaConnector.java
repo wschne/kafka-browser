@@ -191,7 +191,9 @@ public class KafkaConnector {
         return (totalMessagesWanted / partitions.size()) + 1;
     }
 
-    private List<String> putIntoTable(ConsumerRecords<String, String> newRecords, List<String> previousRecords, String topicName) {
+    private List<String> putIntoTable(final ConsumerRecords<String, String> newRecords,
+                                      final List<String> previousRecords,
+                                      final String topicName) {
         final String viewName = getTopicUnparsedViewName(topicName);
 
         Stream<ConsumerRecord<String, String>> consumerRecordStream = StreamSupport.stream(

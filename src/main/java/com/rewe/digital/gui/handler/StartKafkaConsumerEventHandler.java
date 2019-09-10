@@ -52,7 +52,7 @@ public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaCo
 
                     @Override
                     public Object doInBackground(Object[] params) {
-                        final Query query = new Query("select * from " + topicName + " limit 50");
+                        final Query query = new Query("select * from " + topicName);
                         eventBus.post(new WaitForKafkaMessagesEvent(query));
                         try {
                             await().atMost(ONE_MINUTE)
