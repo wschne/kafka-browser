@@ -7,6 +7,7 @@ import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryResultEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryingErrorEvent;
+import com.victorlaerte.asynctask.AsyncTask;
 import lombok.val;
 import org.apache.spark.sql.AnalysisException;
 
@@ -26,15 +27,37 @@ public class KafkaMessageHandler implements MessageHandler {
 
     @Subscribe
     private void executeQueryAndShowResult(final ExecuteQueryEvent executeQueryEvent) {
-        try {
-            val result = kafkaQueryExecutor.executeQuery(executeQueryEvent.getQuery());
-            val topicName = executeQueryEvent.getQuery().getTopic();
-            val resultEvent = new ShowQueryResultEvent(executeQueryEvent.getTarget(), topicName, result);
-            eventBus.post(resultEvent);
-        } catch (AnalysisException e) {
-            val errorMessage = e.getSimpleMessage();
-            eventBus.post(new ShowQueryingErrorEvent(errorMessage));
-        }
-        eventBus.post(new QueryExecutionFinishedEvent(executeQueryEvent.getQuery().getTopic()));
+        AsyncTask executeQueryTask = new AsyncTask() {
+
+            @Override
+            public void onPreExecute() {
+
+            }
+
+            @Override
+            public Object doInBackground(Object[] params) {
+                try {
+                    val result = kafkaQueryExecutor.executeQuery(executeQueryEvent.getQuery());
+                    val topicName = executeQueryEvent.getQuery().getTopic();
+                    val resultEvent = new ShowQueryResultEvent(executeQueryEvent.getTarget(), topicName, result);
+                    eventBus.post(resultEvent);
+                } catch (AnalysisException e) {
+                    val errorMessage = e.getSimpleMessage();
+                    eventBus.post(new ShowQueryingErrorEvent(errorMessage));
+                }
+                return null;
+            }
+
+            @Override
+            public void onPostExecute(Object resultEvent) {
+                eventBus.post(new QueryExecutionFinishedEvent(executeQueryEvent.getQuery().getTopic()));
+            }
+
+            @Override
+            public void progressCallback(Object[] params) {
+
+            }
+        };
+        executeQueryTask.execute();
     }
 }

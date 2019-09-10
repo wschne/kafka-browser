@@ -114,7 +114,6 @@ public class QueryCompositionController implements Initializable {
     @Subscribe
     public void handleExecuteQueryEvent(final ExecuteQueryEvent executeQueryEvent) {
         Platform.runLater(() -> {
-            setExecButtonImage("images/loading.gif");
             queryInput.setText(executeQueryEvent.getQuery().getQuery());
         });
     }
