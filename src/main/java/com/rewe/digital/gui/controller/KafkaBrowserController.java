@@ -12,11 +12,16 @@ import com.rewe.digital.messaging.events.KafkaConnectionSelectedEvent;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,11 +32,13 @@ import java.util.ResourceBundle;
 
 @Named
 public class KafkaBrowserController implements Initializable {
-    private final TopicsService topicsService;
+    private TopicsService topicsService;
     private final ConsumerStartStopEventHandler consumerStartStopEventHandler;
 
     @FXML
     private ListView availableTopicsList;
+    @FXML
+    private TextField filterTopicsInput;
 
     private final StageFactory stageFactory;
     private final EventBus eventBus;
@@ -62,7 +69,25 @@ public class KafkaBrowserController implements Initializable {
 
         Platform.runLater(() -> {
             availableTopicsList.getItems().removeAll();
-            availableTopicsList.setItems(availableTopcs);
+
+            val filteredData = new FilteredList<>(availableTopcs, p -> true);
+            filterTopicsInput.textProperty().addListener((observable, oldValue, newValue) -> {
+                filteredData.setPredicate(row -> {
+                    // If filter text is empty, display all items.
+                    if (newValue == null || newValue.isEmpty()) {
+                        return true;
+                    }
+
+                    val lowerCaseFilter = newValue.toLowerCase();
+
+                    return StringUtils.containsIgnoreCase(row.getId(), lowerCaseFilter);
+                });
+            });
+
+            val sortedData = new SortedList<>(filteredData);
+
+            availableTopicsList.setItems(sortedData);
+
             availableTopicsList.refresh();
         });
     }

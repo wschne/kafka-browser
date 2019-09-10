@@ -12,7 +12,7 @@ import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
 
 @Slf4j
-class OverallConnectionsControllerSpec extends AbstractKafkaSpec {
+class OverallConnectionsControllerComponentSpec extends AbstractKafkaSpec {
     @Override
     String getSceneFileToTest() {
         return "scenes/connections/overall_connections.fxml"

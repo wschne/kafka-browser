@@ -30,11 +30,11 @@ abstract class AbstractApplicationSpec extends ApplicationSpec {
         System.setProperty("user.home", USER_HOME_DIR)
 
 //        if (Boolean.getBoolean("headless")) {
-            System.setProperty("testfx.robot", "glass");
-            System.setProperty("testfx.headless", "true");
-            System.setProperty("prism.order", "sw");
-            System.setProperty("prism.text", "t2k");
-            System.setProperty("headless.geometry", "1600x1200-32");
+//            System.setProperty("testfx.robot", "glass");
+//            System.setProperty("testfx.headless", "true");
+//            System.setProperty("prism.order", "sw");
+//            System.setProperty("prism.text", "t2k");
+//            System.setProperty("headless.geometry", "1600x1200-32");
 //        }
     }
 
