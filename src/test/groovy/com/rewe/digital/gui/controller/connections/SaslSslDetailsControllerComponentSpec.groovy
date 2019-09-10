@@ -10,7 +10,7 @@ import org.testfx.api.FxToolkit
 import spock.lang.Unroll
 
 @Slf4j
-class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
+class SaslSslDetailsControllerComponentSpec extends AbstractKafkaSpec {
     @Override
     String getSceneFileToTest() {
         return "scenes/connections/overall_connections.fxml"
