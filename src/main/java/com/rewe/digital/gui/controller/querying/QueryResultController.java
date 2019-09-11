@@ -103,40 +103,17 @@ public class QueryResultController implements Initializable {
         val errorTab = new Tab("Error", searchError);
         Platform.runLater(
                 () -> {
-                    searchResultTabPane.getSelectionModel().select(errorTab);
                     searchResultTabPane.getTabs().add(errorTab);
+                    searchResultTabPane.getSelectionModel().select(errorTab);
                 }
         );
     }
 
     @Subscribe
     private void showSearchResult(final ShowQueryResultEvent showQueryResultEvent) {
-        val resultTarget = showQueryResultEvent.getTarget();
         val result = showQueryResultEvent.getResult();
-        val topicName = showQueryResultEvent.getTopicName();
-        val observableResult = FXCollections.observableArrayList(result);
 
-        if (resultTarget == ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW) {
-            Platform.runLater(
-                    () -> {
-                        currentSearchResultTab.setText(topicName + " (" + result.size() + ")");
-                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
-                    }
-            );
-        } else {
-            currentSearchResult = new TableView<>();
-            currentSearchResult.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-            currentSearchResultTab = new Tab(topicName + " (" + result.size() + ")", currentSearchResult);
-            currentSearchResultTab.setClosable(true);
-
-            Platform.runLater(
-                    () -> {
-                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
-                        searchResultTabPane.getTabs().add(currentSearchResultTab);
-                    }
-            );
-        }
+        setResultTargetTab(showQueryResultEvent, result);
 
         currentSearchResult.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedMessage) -> {
             eventBus.post(new ShowMessageDetailsEvent(selectedMessage));
@@ -144,6 +121,7 @@ public class QueryResultController implements Initializable {
 
         addTableColumns(currentSearchResult, result);
 
+        val observableResult = FXCollections.observableArrayList(result);
         val filteredData = new FilteredList<>(observableResult, p -> true);
 
         filterSearchResultInput.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -171,6 +149,33 @@ public class QueryResultController implements Initializable {
         val sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(currentSearchResult.comparatorProperty());
         currentSearchResult.setItems(sortedData);
+    }
+
+    private void setResultTargetTab(final ShowQueryResultEvent showQueryResultEvent,
+                                    final List<Map> result) {
+        val resultTarget = showQueryResultEvent.getTarget();
+        val topicName = showQueryResultEvent.getTopicName();
+        if (resultTarget == ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW) {
+            Platform.runLater(
+                    () -> {
+                        currentSearchResultTab.setText(topicName + " (" + result.size() + ")");
+                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
+                    }
+            );
+        } else {
+            currentSearchResult = new TableView<>();
+            currentSearchResult.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+            currentSearchResultTab = new Tab(topicName + " (" + result.size() + ")", currentSearchResult);
+            currentSearchResultTab.setClosable(true);
+
+            Platform.runLater(
+                    () -> {
+                        searchResultTabPane.getTabs().add(currentSearchResultTab);
+                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
+                    }
+            );
+        }
     }
 
     private boolean isSelectedTabASearchResultTab(final Tab newTab) {

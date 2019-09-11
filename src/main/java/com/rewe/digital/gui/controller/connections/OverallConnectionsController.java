@@ -115,7 +115,7 @@ public class OverallConnectionsController implements Initializable {
         Platform.runLater(() -> {
             int itemIndex = configuredConnectionsList.getSelectionModel().getSelectedIndex();
             configuredConnectionsList.getItems().remove(itemIndex);
-            configuredConnectionsList.getItems().add(connectionSettings);
+            configuredConnectionsList.getItems().add(itemIndex, connectionSettings);
             configuredConnectionsList.getSelectionModel().select(connectionSettings);
         });
         kafkaConnectionRepository.save(connectionSettings);
