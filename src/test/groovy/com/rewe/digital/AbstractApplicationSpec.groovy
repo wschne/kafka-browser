@@ -2,8 +2,8 @@ package com.rewe.digital
 
 import com.gluonhq.ignite.guice.GuiceContext
 import com.google.common.eventbus.EventBus
-import com.rewe.digital.configuration.FileStorageRepository
 import com.rewe.digital.gui.StageFactory
+import com.rewe.digital.kafka.KafkaConnectionRepository
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
@@ -18,7 +18,7 @@ abstract class AbstractApplicationSpec extends ApplicationSpec {
     static GuiceContext context = new GuiceContext(this, { [new KafkaBrowserMain.GuiceModule()] });
     static StageFactory factory
     static EventBus eventBus
-    static FileStorageRepository fileStorageRepository
+    static KafkaConnectionRepository connectionRepository
 
     Stage stage
     Scene scene
@@ -40,16 +40,14 @@ abstract class AbstractApplicationSpec extends ApplicationSpec {
 
     @Override
     void start(Stage stage) throws Exception {
-        this.stage = stage
-
-        Stage stageToTest = factory.createStage(getSceneFileToTest(),
+        this.stage = factory.createStage(getSceneFileToTest(),
                 "styles.css",
-                "Consumer configuration");
+                "Name: ${getSceneFileToTest()}");
 
-        scene = stageToTest.getScene()
+        scene = this.stage.getScene()
         loader = (FXMLLoader) scene.getUserData();
 
-        stageToTest.show();
+        this.stage.show();
     }
 
     @Override
@@ -62,7 +60,7 @@ abstract class AbstractApplicationSpec extends ApplicationSpec {
         context.init()
         factory = context.getInstance(StageFactory)
         eventBus = context.getInstance(EventBus)
-        fileStorageRepository = context.getInstance(FileStorageRepository)
+        connectionRepository = context.getInstance(KafkaConnectionRepository)
     }
 
     def setup() {

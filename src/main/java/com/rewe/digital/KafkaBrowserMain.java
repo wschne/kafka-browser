@@ -3,66 +3,96 @@ package com.rewe.digital;
 import com.gluonhq.ignite.guice.GuiceContext;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
+import com.rewe.digital.gui.StageFactory;
+import com.rewe.digital.gui.launcher.AppLauncher;
 import com.rewe.digital.messaging.KafkaMessageHandler;
 import com.rewe.digital.messaging.MessageHandler;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.concurrent.Task;
 import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.spark.sql.SparkSession;
+import org.fuin.ext4logback.LogbackStandalone;
+import org.fuin.ext4logback.NewLogConfigFileParams;
 
-import javax.inject.Inject;
-import java.net.URL;
+import java.io.File;
 import java.util.Arrays;
-import java.util.Objects;
 
+@Slf4j
 public class KafkaBrowserMain extends Application {
 
     public static String APPLICATION_VERSION;
-
-    @Inject
-    private FXMLLoader fxmlLoader;
-
-    private GuiceContext context = new GuiceContext(this, () -> Arrays.asList(new GuiceModule()));
-
-    @Override
-    public void start(Stage stage) throws Exception {
-        context.init();
-
-        final URL location = Objects.requireNonNull(getClass().getClassLoader().getResource("scenes/connections/overall_connections.fxml"));
-        fxmlLoader.setLocation(location);
-        Parent root = fxmlLoader.load();
-
-        Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getClassLoader().getResource("styles.css").toExternalForm());
-
-        stage.setTitle("Kafka-Browser [Connections] (" + APPLICATION_VERSION + ")");
-        stage.setScene(scene);
-        stage.setResizable(false);
-        stage.show();
-    }
 
     public static void main(String[] args) {
         if (args != null && args.length >= 1) {
             APPLICATION_VERSION = args[0];
         }
+
+        setupLogging();
         launch(args);
+    }
+
+    @Override
+    public void start(Stage initStage) throws Exception {
+        val appLauncher = new AppLauncher();
+        appLauncher.initialize();
+
+        val loadContextTask = new Task<GuiceContext>() {
+            @Override
+            protected GuiceContext call() throws Exception {
+                updateMessage("Loading context.");
+                GuiceContext context = new GuiceContext(this, () -> Arrays.asList(new GuiceModule()));
+                context.init();
+
+                return context;
+            }
+        };
+
+        appLauncher.showSplash(initStage, loadContextTask, () -> showMainStage(loadContextTask.valueProperty()) );
+        new Thread(loadContextTask).start();
+    }
+
+    private void showMainStage(ReadOnlyObjectProperty<GuiceContext> context) {
+        val guiceContext = context.get();
+        val stageFactory = guiceContext.getInstance(StageFactory.class);
+        stageFactory.openOverallConnectionsStage(KafkaBrowserMain.APPLICATION_VERSION);
     }
 
     class GuiceModule extends AbstractModule {
         @Override
         protected void configure() {
+            System.setProperty("spark.ui.enabled", "false");
             SparkSession sparkSession = SparkSession
                     .builder()
                     .master("local[*]")
                     .appName("Kafka-Browser")
                     .config("spark.driver.host", "localhost")
-                    .config("spark.driver.bindAddress","127.0.0.1")
+                    .config("spark.driver.bindAddress", "127.0.0.1")
+                    .config("spark.sql.codegen.wholeStage", "false")
                     .getOrCreate();
             bind(SparkSession.class).toInstance(sparkSession);
             bind(EventBus.class).toInstance(new EventBus());
             bind(MessageHandler.class).to(KafkaMessageHandler.class).asEagerSingleton();
         }
+    }
+
+    private static void setupLogging() {
+        val logFileFileName = "kafka-browser";
+        val logbackXmlFile = new File("logback.xml");
+        new LogbackStandalone().init(logbackXmlFile, new NewLogConfigFileParams("com.rewe.digital", logFileFileName));
+
+        val r = Runtime.getRuntime();
+
+        r.addShutdownHook(new Thread(() -> {
+            final File logFile = new File(logFileFileName + ".log");
+            if(logFile.exists()){
+                logFile.delete();
+            }
+            if (logbackXmlFile.exists()) {
+                logbackXmlFile.delete();
+            }
+        }) );
     }
 }

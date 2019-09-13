@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 
 JPACKAGER_MAC=jdk.packager-osx.zip
 JPACKAGER_LINUX=jdk.packager-linux.zip
@@ -41,13 +41,41 @@ echo "Icon used: ${ICON_FILE_PATH}"
 
 preparePackager
 
-./tmp/jpackager/jpackager create-installer -i $(pwd)/../build/libs \
-     -o $(pwd)/../build/native/ \
-     -n kafka-browser \
-     --module-path $(pwd)/tmp/${JAVA_FX_JMODS_FILE_NAME} \
-     --add-modules javafx.fxml,javafx.web,javafx.media,javafx.swing,java.base \
-     --runtime-image tmp/${CUSTOM_JVM_PATH} \
-     --icon ${ICON_FILE_PATH} \
-     --version ${VERSION_TO_BE_USED} \
-     --arguments ${VERSION_TO_BE_USED} \
-     --main-jar kafka-browser-1.0-SNAPSHOT.jar
+cp $(pwd)/../src/main/resources/logback.xml $(pwd)/../build/libs
+
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    ./tmp/jpackager/jpackager create-installer -i $(pwd)/../build/libs \
+         -o $(pwd)/../build/native/ \
+         -n kafka-browser \
+         --module-path $(pwd)/tmp/${JAVA_FX_JMODS_FILE_NAME} \
+         --add-modules javafx.fxml,javafx.web,javafx.media,javafx.swing,java.base \
+         --runtime-image tmp/${CUSTOM_JVM_PATH} \
+         --icon ${ICON_FILE_PATH} \
+         --version ${VERSION_TO_BE_USED} \
+         --arguments ${VERSION_TO_BE_USED} \
+         --main-jar kafka-browser-1.0-SNAPSHOT.jar
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    ./tmp/jpackager/jpackager create-image -i $(pwd)/../build/libs \
+         -o $(pwd)/../build/native/ \
+         -n kafka-browser \
+         --module-path $(pwd)/tmp/${JAVA_FX_JMODS_FILE_NAME} \
+         --add-modules javafx.fxml,javafx.web,javafx.media,javafx.swing,java.base \
+         --runtime-image tmp/${CUSTOM_JVM_PATH} \
+         --icon ${ICON_FILE_PATH} \
+         --version ${VERSION_TO_BE_USED} \
+         --arguments ${VERSION_TO_BE_USED} \
+         --main-jar kafka-browser-1.0-SNAPSHOT.jar
+
+    ./tmp/jpackager/jpackager create-installer --app-image $(pwd)/../build/native \
+         -o $(pwd)/../build/native/ \
+         -n kafka-browser \
+         --module-path $(pwd)/tmp/${JAVA_FX_JMODS_FILE_NAME} \
+         --add-modules javafx.fxml,javafx.web,javafx.media,javafx.swing,java.base \
+         --runtime-image tmp/${CUSTOM_JVM_PATH} \
+         --icon ${ICON_FILE_PATH} \
+         --version ${VERSION_TO_BE_USED} \
+         --arguments ${VERSION_TO_BE_USED} \
+else
+         echo "Unknown OS. Exit script"
+         exit 1
+fi

@@ -10,7 +10,7 @@ import org.testfx.api.FxToolkit
 import spock.lang.Unroll
 
 @Slf4j
-class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
+class SaslSslDetailsControllerComponentSpec extends AbstractKafkaSpec {
     @Override
     String getSceneFileToTest() {
         return "scenes/connections/overall_connections.fxml"
@@ -31,9 +31,9 @@ class SaslSslDetailsControllerSpec extends AbstractKafkaSpec {
                 loginPassword)
         def connectionSettings = new ConnectionSettings(UUID.randomUUID(),
                 'sasl_ssl_config',
-                kafkaContainer.getSaslSslBootstrapServers(),
+                firstKafkaContainer.getSaslSslBootstrapServers(),
                 securityConfig)
-        fileStorageRepository.writeDataToFile('connections', connectionSettings.fileName, connectionSettings)
+        connectionRepository.save(connectionSettings)
 
         when:
         FxToolkit.setupStage({

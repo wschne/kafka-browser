@@ -1,10 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rewe.digital.gui.controller.KafkaBrowserController">
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="kafkaBrowserPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rewe.digital.gui.controller.KafkaBrowserController">
+    <top>
+        <MenuBar>
+            <Menu fx:id="menuConnections" text="Connection">
+                <MenuItem fx:id="menuSwitchConnection" onAction="#onSwitchConnection" text="Switch connection" />
+            </Menu>
+        </MenuBar>
+    </top>
     <left>
-        <ListView fx:id="availableTopicsList" prefHeight="400.0" prefWidth="350.0" BorderPane.alignment="CENTER" />
+        <VBox prefWidth="350.0" spacing="5">
+            <HBox alignment="CENTER_LEFT" spacing="5">
+                <Label text="Filter topics:" />
+                <TextField fx:id="filterTopicsInput" HBox.hgrow="ALWAYS" />
+                <VBox.margin>
+                    <Insets left="5.0" right="5.0" top="5.0" />
+                </VBox.margin>
+            </HBox>
+            <ListView fx:id="availableTopicsList" VBox.vgrow="ALWAYS" />
+        </VBox>
     </left>
     <center>
         <fx:include source="query/query_stage.fxml" />

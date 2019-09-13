@@ -4,17 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.rewe.digital.gui.controls.helper.QueryResultTableColumnBuilder;
 import com.rewe.digital.kafka.KafkaQueryExecutor;
 import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
 import com.rewe.digital.messaging.events.ShowMessageDetailsEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryResultEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryingErrorEvent;
-import com.victorlaerte.asynctask.AsyncTask;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
@@ -25,10 +23,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.InputMethodEvent;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.types.StructType;
 
 import javax.inject.Inject;
@@ -65,11 +61,18 @@ public class QueryResultController implements Initializable {
     @FXML
     public TextField filterSearchResultInput;
 
-    @Inject
-    private EventBus eventBus;
+    private final EventBus eventBus;
+    private final KafkaQueryExecutor kafkaQueryExecutor;
+    private final QueryResultTableColumnBuilder tableColumnBuilder;
 
     @Inject
-    private KafkaQueryExecutor kafkaQueryExecutor;
+    public QueryResultController(final EventBus eventBus,
+                                 final KafkaQueryExecutor kafkaQueryExecutor,
+                                 final QueryResultTableColumnBuilder tableColumnBuilder) {
+        this.eventBus = eventBus;
+        this.kafkaQueryExecutor = kafkaQueryExecutor;
+        this.tableColumnBuilder = tableColumnBuilder;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -100,40 +103,17 @@ public class QueryResultController implements Initializable {
         val errorTab = new Tab("Error", searchError);
         Platform.runLater(
                 () -> {
-                    searchResultTabPane.getSelectionModel().select(errorTab);
                     searchResultTabPane.getTabs().add(errorTab);
+                    searchResultTabPane.getSelectionModel().select(errorTab);
                 }
         );
     }
 
     @Subscribe
     private void showSearchResult(final ShowQueryResultEvent showQueryResultEvent) {
-        val resultTarget = showQueryResultEvent.getTarget();
         val result = showQueryResultEvent.getResult();
-        val topicName = showQueryResultEvent.getTopicName();
-        val observableResult = FXCollections.observableArrayList(result);
 
-        if (resultTarget == ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW) {
-            Platform.runLater(
-                    () -> {
-                        currentSearchResultTab.setText(topicName + " (" + result.size() + ")");
-                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
-                    }
-            );
-        } else {
-            currentSearchResult = new TableView<>();
-            currentSearchResult.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-            currentSearchResultTab = new Tab(topicName + " (" + result.size() + ")", currentSearchResult);
-            currentSearchResultTab.setClosable(true);
-
-            Platform.runLater(
-                    () -> {
-                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
-                        searchResultTabPane.getTabs().add(currentSearchResultTab);
-                    }
-            );
-        }
+        setResultTargetTab(showQueryResultEvent, result);
 
         currentSearchResult.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedMessage) -> {
             eventBus.post(new ShowMessageDetailsEvent(selectedMessage));
@@ -141,6 +121,7 @@ public class QueryResultController implements Initializable {
 
         addTableColumns(currentSearchResult, result);
 
+        val observableResult = FXCollections.observableArrayList(result);
         val filteredData = new FilteredList<>(observableResult, p -> true);
 
         filterSearchResultInput.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -170,6 +151,33 @@ public class QueryResultController implements Initializable {
         currentSearchResult.setItems(sortedData);
     }
 
+    private void setResultTargetTab(final ShowQueryResultEvent showQueryResultEvent,
+                                    final List<Map> result) {
+        val resultTarget = showQueryResultEvent.getTarget();
+        val topicName = showQueryResultEvent.getTopicName();
+        if (resultTarget == ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW) {
+            Platform.runLater(
+                    () -> {
+                        currentSearchResultTab.setText(topicName + " (" + result.size() + ")");
+                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
+                    }
+            );
+        } else {
+            currentSearchResult = new TableView<>();
+            currentSearchResult.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+            currentSearchResultTab = new Tab(topicName + " (" + result.size() + ")", currentSearchResult);
+            currentSearchResultTab.setClosable(true);
+
+            Platform.runLater(
+                    () -> {
+                        searchResultTabPane.getTabs().add(currentSearchResultTab);
+                        searchResultTabPane.getSelectionModel().select(currentSearchResultTab);
+                    }
+            );
+        }
+    }
+
     private boolean isSelectedTabASearchResultTab(final Tab newTab) {
         return !newTab.getText().contains("Error") && newTab.getContent() instanceof TableView;
     }
@@ -191,31 +199,9 @@ public class QueryResultController implements Initializable {
                 .map(Map::keySet);
 
         columns.ifPresent(cols -> {
-            List<TableColumn<Map<String, Object>, String>> tableColumns = cols.stream().map(column -> {
-                TableColumn<Map<String, Object>, String> tableColumn = new TableColumn<>(column);
-                tableColumn.setCellValueFactory(p -> {
-                    final Object columnValue = p.getValue().get(column);
-                    if (columnValue instanceof String) {
-                        return new SimpleStringProperty((String) columnValue);
-                    } else if (columnValue instanceof Map) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        try {
-                            String json = mapper.writeValueAsString(columnValue);
-                            int maxSize = 120;
-                            if (json.length() > maxSize) {
-                                json = json.substring(0, maxSize) + " ...";
-                            }
-                            return new SimpleStringProperty(json);
-                        } catch (JsonProcessingException e) {
-                            e.printStackTrace();
-                            return new SimpleStringProperty("Error while reading value");
-                        }
-                    } else {
-                        return new SimpleStringProperty(String.valueOf(columnValue));
-                    }
-                });
-                return tableColumn;
-            }).collect(Collectors.toList());
+            List<TableColumn<Map<String, Object>, String>> tableColumns = cols.stream()
+                    .map(tableColumnBuilder::buildTableColumn)
+                    .collect(Collectors.toList());
 
             Platform.runLater(
                     () -> {

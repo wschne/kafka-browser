@@ -20,7 +20,7 @@ jobs:
       os: linux
       env:
         - _JAVA_OPTIONS="-Dtestfx.robot=glass -Dglass.gtk.uiScale=2.0"
-      script: ./gradlew test
+      script: ./gradlew test --info
     - stage: GitHub Release of Linux build
       if: tag IS present
       os: linux

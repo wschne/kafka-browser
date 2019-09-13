@@ -8,7 +8,13 @@ import spock.lang.Shared
 
 abstract class AbstractKafkaSpec extends AbstractApplicationSpec {
     @Shared
-    static SecuredKafkaContainer kafkaContainer = new SecuredKafkaContainer()
+    static SecuredKafkaContainer firstKafkaContainer = new SecuredKafkaContainer()
+    @Shared
+    static SecuredKafkaContainer secondKafkaContainer = new SecuredKafkaContainer(9192,
+            2281,
+            9193,
+            9293,
+    'second_kafka_topic_1:1:1,second_kafka_topic_2:1:1,second_kafka_topic_3:1:1')
     static KafkaConsumerFactory kafkaConsumerFactory
 
     def setupSpec() {
@@ -16,21 +22,31 @@ abstract class AbstractKafkaSpec extends AbstractApplicationSpec {
     }
 
     def setup() {
-        kafkaConsumerFactory?.connectedConsumer?.close(20, true)
+        kafkaConsumerFactory?.connectedConsumer.values().each {it?.close(20, true)}
     }
 
     static {
+        def firstZookeeper = setupZookeeper(firstKafkaContainer, "2181")
+        firstZookeeper.start()
+        firstKafkaContainer.start()
+
+        def secondZookeeper = setupZookeeper(secondKafkaContainer, "2281")
+        secondZookeeper.start()
+        secondKafkaContainer.start()
+
+        conditions.within(10) {
+            firstKafkaContainer.isReady() &&
+            secondKafkaContainer.isReady()
+        }
+    }
+
+    private static GenericContainer setupZookeeper(SecuredKafkaContainer kafkaContainer, String zooKeeperPort) {
         GenericContainer zookeeper = new GenericContainer("confluentinc/cp-zookeeper:4.0.0")
                 .withNetwork(kafkaContainer.getNetwork())
                 .withNetworkAliases("zookeeper")
                 .withEnv('JMX_OPTS', "-Djava.security.auth.login.config=/etc/kafka/server-jaas.conf")
                 .withClasspathResourceMapping('kafka_server_conf/server-jaas.conf', '/etc/kafka/server-jaas.conf', BindMode.READ_ONLY)
-                .withEnv("ZOOKEEPER_CLIENT_PORT", "2181");
-
-        zookeeper.start()
-        kafkaContainer.start()
-        conditions.within(10) {
-            kafkaContainer.isRunning()
-        }
+                .withEnv("ZOOKEEPER_CLIENT_PORT", zooKeeperPort);
+        zookeeper
     }
 }

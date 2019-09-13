@@ -5,6 +5,7 @@ import com.rewe.digital.gui.topiclist.TopicListItem;
 import com.rewe.digital.kafka.KafkaConnector;
 import com.rewe.digital.kafka.OffsetConfigType;
 import com.rewe.digital.messaging.events.StartKafkaConsumerEvent;
+import com.victorlaerte.asynctask.AsyncTask;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
@@ -62,17 +63,39 @@ public class ConsumerConfigController implements Initializable {
         this.topicListItemClickedEvent = topicListItemClickedEvent;
         Platform.runLater(() -> {
             consumerSettingsPane.setText("Consumer config [" + topicListItemClickedEvent.topicName + "]");
-            val messageCount = kafkaConnector.getTopicSize(topicListItemClickedEvent.topicName);
-            textBoxNumberOfMessages.setText(String.valueOf(messageCount));
-
-            if (messageCount > 0) {
-                buttonStartConsumer.setDisable(false);
-                buttonStartConsumer.setText("Start consumer");
-            } else {
-                buttonStartConsumer.setDisable(true);
-                buttonStartConsumer.setText("Topic is empty");
-            }
         });
+
+        AsyncTask fetchTopicSize = new AsyncTask<Object, Object, Long>() {
+            @Override
+            public void onPreExecute() {
+                Platform.runLater(() -> { textBoxNumberOfMessages.setText("calculating..."); });
+            }
+
+            @Override
+            public Long doInBackground(Object[] params) {
+                return kafkaConnector.getTopicSize((String)params[0]);
+            }
+
+            @Override
+            public void onPostExecute(Long messageCount) {
+                Platform.runLater(() -> {
+                    textBoxNumberOfMessages.setText(String.valueOf(messageCount));
+
+                    if (messageCount > 0) {
+                        buttonStartConsumer.setDisable(false);
+                        buttonStartConsumer.setText("Start consumer");
+                    } else {
+                        buttonStartConsumer.setDisable(true);
+                        buttonStartConsumer.setText("Topic is empty");
+                    }
+                });
+            }
+
+            @Override
+            public void progressCallback(Object[] params) { }
+        };
+
+        fetchTopicSize.execute(topicListItemClickedEvent.topicName);
     }
 
     public void closeWindow(ActionEvent actionEvent) {
