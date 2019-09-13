@@ -66,7 +66,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
          --arguments ${VERSION_TO_BE_USED} \
          --main-jar kafka-browser-1.0-SNAPSHOT.jar
 
-    ./tmp/jpackager/jpackager create-installer --app-image $(pwd)/../build/native \
+    ./tmp/jpackager/jpackager create-installer dmg --app-image $(pwd)/../build/native \
          -o $(pwd)/../build/native/ \
          -n kafka-browser \
          --module-path $(pwd)/tmp/${JAVA_FX_JMODS_FILE_NAME} \
@@ -74,7 +74,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
          --runtime-image tmp/${CUSTOM_JVM_PATH} \
          --icon ${ICON_FILE_PATH} \
          --version ${VERSION_TO_BE_USED} \
-         --arguments ${VERSION_TO_BE_USED} \
+         --arguments ${VERSION_TO_BE_USED}
 else
          echo "Unknown OS. Exit script"
          exit 1
