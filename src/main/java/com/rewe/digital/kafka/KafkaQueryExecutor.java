@@ -33,7 +33,7 @@ public class KafkaQueryExecutor {
     }
 
     public List<Map> executeQuery(Query query) throws AnalysisException {
-        return spark.sql(getNormalizedQuery(query))
+        return spark.sql(query.getNormalizedQuery())
                 .toJSON()
                 .collectAsList()
                 .stream()
@@ -48,12 +48,6 @@ public class KafkaQueryExecutor {
                     }
                 })
                 .collect(Collectors.toList());
-    }
-
-    private String getNormalizedQuery(final Query query) {
-        val topicName = query.getTopic();
-        val normalizedTopic = topicName.replace("-", "_");
-        return query.getQuery().replace(topicName, normalizedTopic);
     }
 
     public Optional<StructType> getTopicSchema(String topic) {

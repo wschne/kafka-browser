@@ -3,6 +3,7 @@ package com.rewe.digital.gui.controller.querying;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.rewe.digital.gui.StageFactory;
+import com.rewe.digital.gui.controls.AutoCompleteTextField;
 import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
 import com.rewe.digital.messaging.events.TopicEmptyEvent;
@@ -24,10 +25,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import org.apache.spark.sql.SparkSession;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -35,7 +38,7 @@ import java.util.ResourceBundle;
 public class QueryCompositionController implements Initializable {
 
     @FXML
-    private TextField queryInput;
+    private AutoCompleteTextField queryInput;
 
     @FXML
     private SplitMenuButton executeButton;
@@ -49,11 +52,16 @@ public class QueryCompositionController implements Initializable {
     @Inject
     private StageFactory stageFactory;
 
+    @Inject
+    private SparkSession sparkSession;
+
     private Stage queryHistoryWindow;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         eventBus.register(this);
+
+        queryInput.sparkSession = sparkSession;
 
         queryHistoryWindow = stageFactory.createStage("scenes/query/query_history.fxml",
                 "styles.css",
@@ -61,17 +69,14 @@ public class QueryCompositionController implements Initializable {
         queryHistoryWindow.setResizable(false);
         queryHistoryWindow.setAlwaysOnTop(true);
         queryHistoryWindow.initStyle(StageStyle.UTILITY);
-    }
 
-    @FXML
-    public void onEnter(KeyEvent ae) {
-        if (ae.getCode() == KeyCode.ENTER) {
-            if (ae.isControlDown()) {
+        queryInput.setOnEnterEventCallback(keyEvent -> {
+            if (keyEvent.isControlDown()) {
                 executeQuery(ExecuteQueryEvent.ResultTarget.NEW_WINDOW);
             } else {
                 executeQuery(ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW);
             }
-        }
+        });
     }
 
     @FXML
