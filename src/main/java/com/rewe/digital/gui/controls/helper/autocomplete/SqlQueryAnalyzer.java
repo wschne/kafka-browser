@@ -3,10 +3,12 @@ package com.rewe.digital.gui.controls.helper.autocomplete;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Named
 public class SqlQueryAnalyzer {
     public List<String> getWordAtPosition(final String query, final int position) {
         if (query == null ||
@@ -29,7 +31,9 @@ public class SqlQueryAnalyzer {
     }
 
     public boolean isLastTypedCharacterADot(final String query, final int position) {
-        if (query == null || query.length() < position) return false;
+        if (query == null) return false;
+        if (query.length() == position) return query.charAt(query.length()-1) == '.';
+        if (query.length() < position + 1) return false;
         final String character = query.substring(position, position + 1);
         return character.equals(".") || (character.equals(" ") && query.substring(position-1, position).equals("."));
     }

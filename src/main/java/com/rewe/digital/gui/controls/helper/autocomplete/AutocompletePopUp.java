@@ -12,6 +12,7 @@ import org.apache.spark.sql.types.NumericType;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@Named
 public class AutocompletePopUp {
     private ContextMenu entriesPopup = new ContextMenu();
     private Consumer<String> eventCallback;

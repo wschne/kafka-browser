@@ -1,7 +1,9 @@
 package com.rewe.digital.gui.controls
 
 import com.rewe.digital.AbstractControlSpec
+import com.rewe.digital.gui.controls.helper.autocomplete.ApplySelectedEntry
 import com.rewe.digital.gui.controls.helper.autocomplete.AutocompletePopUp
+import com.rewe.digital.gui.controls.helper.autocomplete.CalculateCaretPosition
 import com.rewe.digital.gui.controls.helper.autocomplete.SparkSchemaTraverseUtil
 import com.rewe.digital.gui.controls.helper.autocomplete.SqlQueryAnalyzer
 import javafx.scene.Scene
@@ -19,13 +21,14 @@ import org.apache.spark.sql.types.StructType
 import org.testfx.api.FxToolkit
 import org.testfx.service.adapter.impl.JavafxRobotAdapter
 import org.testfx.util.WaitForAsyncUtils
-import spock.lang.Unroll
 
 class AutoCompleteTextFieldSpec extends AbstractControlSpec {
     JavafxRobotAdapter robotAdapter = new JavafxRobotAdapter()
     SparkSchemaTraverseUtil sparkSchemaTraverseUtil = Mock()
     AutocompletePopUp autocompletePopUp = Mock()
     SqlQueryAnalyzer sqlQueryAnalyzer = Mock()
+    ApplySelectedEntry applySelectedEntry = Mock()
+    CalculateCaretPosition calculateCaretPosition = Mock()
 
     AutoCompleteTextField autoCompleteTextField
 
@@ -34,7 +37,9 @@ class AutoCompleteTextFieldSpec extends AbstractControlSpec {
         autoCompleteTextField = new AutoCompleteTextField(sparkSession: setupSpark(),
                 sparkSchemaTraverseUtil: sparkSchemaTraverseUtil,
                 autocompletePopUp: autocompletePopUp,
-                sqlQueryAnalyzer: sqlQueryAnalyzer)
+                sqlQueryAnalyzer: sqlQueryAnalyzer,
+                applySelectedEntry: applySelectedEntry,
+                calculateCaretPosition: calculateCaretPosition)
         autoCompleteTextField.setId('autoCompleteTextField')
         stage.setScene(new Scene(new StackPane(autoCompleteTextField), 100, 100))
         stage.show()
@@ -47,9 +52,14 @@ class AutoCompleteTextFieldSpec extends AbstractControlSpec {
         sqlQueryAnalyzer.getWordAtPosition(_, _) >> []
     }
 
-    @Unroll
-    def "Apply selected field #selectedEntry to the previously entered query '#initialQuery'"() {
+    def "Apply selected field to the previously entered query"() {
         given:
+        def initialQuery = 'select value. from topic'
+        def selectedEntry = 'payload'
+        def caretPosition = 13
+        def expectedResult = 'select value.payload from topic'
+
+        and:
         FxToolkit.setupScene({
             autoCompleteTextField.setText(initialQuery)
             autoCompleteTextField.positionCaret(caretPosition)
@@ -62,16 +72,7 @@ class AutoCompleteTextFieldSpec extends AbstractControlSpec {
         autoCompleteTextField.getText() == expectedResult
 
         and:
-        _ * sqlQueryAnalyzer.isLastTypedCharacterADot(initialQuery, caretPosition) >> isCaretAtDot
-        _ * sqlQueryAnalyzer.getWordAtPosition(initialQuery, caretPosition) >> selectedWords
-
-        where:
-        initialQuery                           | selectedWords               | selectedEntry | caretPosition | isCaretAtDot | expectedResult
-        'select value. from topic'             | ['value']                   | 'payload'     | 13            | true         | 'select value.payload from topic'
-        'select val from topic'                | ['val']                     | 'value'       | 9             | false        | 'select value from topic'
-        'select  from topic'                   | []                          | 'value'       | 7             | false        | 'select value from topic'
-        'select value.payload.tim from topic'  | ['value', 'payload', 'tim'] | 'timestamp'   | 25            | false        | 'select value.payload.timestamp from topic'
-        'select value from topic where value.' | ['value']                   | 'payload'     | 36            | true         | 'select value from topic where value.payload'
+        1 * applySelectedEntry.toQuery(selectedEntry, caretPosition, initialQuery) >> expectedResult
     }
 
     def "Show popup of schema entries if user presses 'control-space'"() {
@@ -92,7 +93,7 @@ class AutoCompleteTextFieldSpec extends AbstractControlSpec {
         WaitForAsyncUtils.waitForFxEvents();
 
         then:
-        pollingConditions.eventually {
+        pollingConditions.within(3) {
             1 * autocompletePopUp.showEntriesPopUp(autoCompleteTextField, { List<StructField> fields ->
                 assert fields[0].name() == 'col_1'
                 assert fields[1].name() == 'col_2'

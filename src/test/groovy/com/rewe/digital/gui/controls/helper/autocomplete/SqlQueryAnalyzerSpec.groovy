@@ -31,10 +31,13 @@ class SqlQueryAnalyzerSpec extends Specification {
         sqlQueryAnalyzer.isLastTypedCharacterADot(query, position) == expected
 
         where:
-        query                              | position | expected
-        'select value. from address'       | 12       | true
-        'select value. from table where a' | 13       | true
-        'select value. from table where a' | 14       | false
-        'select value from table where a'  | 12       | false
+        query                                                                                      | position | expected
+        'select value. from address'                                                               | 12       | true
+        'select value. from table where a'                                                         | 13       | true
+        'select value. from table where a'                                                         | 14       | false
+        'select value from table where a'                                                          | 12       | false
+        'select key from address where val'                                                        | 33       | false
+        'select key from address where value.payload.'                                             | 44       | true
+        'select value.payload. from address where value.payload.additionalAddressInfo is not null' | 21       | true
     }
 }

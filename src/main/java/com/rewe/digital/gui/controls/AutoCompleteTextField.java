@@ -1,6 +1,8 @@
 package com.rewe.digital.gui.controls;
 
+import com.rewe.digital.gui.controls.helper.autocomplete.ApplySelectedEntry;
 import com.rewe.digital.gui.controls.helper.autocomplete.AutocompletePopUp;
+import com.rewe.digital.gui.controls.helper.autocomplete.CalculateCaretPosition;
 import com.rewe.digital.gui.controls.helper.autocomplete.SparkSchemaTraverseUtil;
 import com.rewe.digital.gui.controls.helper.autocomplete.SqlQueryAnalyzer;
 import com.rewe.digital.model.Query;
@@ -14,14 +16,18 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Named
 public class AutoCompleteTextField extends TextField {
     private SqlQueryAnalyzer sqlQueryAnalyzer = new SqlQueryAnalyzer();
     private SparkSchemaTraverseUtil sparkSchemaTraverseUtil = new SparkSchemaTraverseUtil();
     private AutocompletePopUp autocompletePopUp = new AutocompletePopUp();
+    private ApplySelectedEntry applySelectedEntry = new ApplySelectedEntry(sqlQueryAnalyzer);
+    private CalculateCaretPosition calculateCaretPosition = new CalculateCaretPosition();
     private List<StructField> entries;
     private ContextMenu entriesPopup;
     public SparkSession sparkSession;
@@ -35,13 +41,13 @@ public class AutoCompleteTextField extends TextField {
 
         focusedProperty().addListener((observableValue, aBoolean, aBoolean2) -> entriesPopup.hide());
 
-        autocompletePopUp.setEntrySelectedEvent(newEntrySelected());
+        this.autocompletePopUp.setEntrySelectedEvent(newEntrySelected());
 
         setOnKeyPressed(event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.SPACE) {
                 calculateAutocompletePupup(getText());
-                autocompletePopUp.showEntriesPopUp(AutoCompleteTextField.this, entries);
-            } else if (!autocompletePopUp.isPopupOpen() && event.getCode() == KeyCode.ENTER) {
+                this.autocompletePopUp.showEntriesPopUp(AutoCompleteTextField.this, entries);
+            } else if (!this.autocompletePopUp.isPopupOpen() && event.getCode() == KeyCode.ENTER) {
                 onEnterKeyPressed.accept(event);
             }
         });
@@ -84,49 +90,12 @@ public class AutoCompleteTextField extends TextField {
         return entry -> {
             val position = getCaretPosition();
             val query = getText();
-            val newQuery = getNewQuery(entry, position, query);
-            setText(newQuery);
+            val newQuery = applySelectedEntry.toQuery(entry, position, query);
 
-            setCursorPosition(entry, position, newQuery);
+            setText(newQuery);
+            positionCaret(calculateCaretPosition.forSelectedEntry(position, newQuery));
+
             entriesPopup.hide();
         };
-    }
-
-    private void setCursorPosition(final String entry,
-                                   final int position,
-                                   final String newQuery) {
-        val wordAtPosition = sqlQueryAnalyzer.getWordAtPosition(newQuery, position);
-        if (!wordAtPosition.isEmpty()) {
-            val newFieldsString = String.join(".", wordAtPosition);
-            val newCursorPosition = newQuery.indexOf(newFieldsString) + newFieldsString.length();
-            positionCaret(newCursorPosition);
-        } else {
-            val newCursorPosition = position + entry.length();
-            positionCaret(newCursorPosition);
-        }
-    }
-
-    private String getNewQuery(String entry, int position, String query) {
-        val wordsToReplace = sqlQueryAnalyzer.getWordAtPosition(query, position);
-        if (sqlQueryAnalyzer.isLastTypedCharacterADot(query, position) || wordsToReplace.isEmpty()) {
-            return insertString(query, entry, position);
-        } else {
-            val stringToReplace = String.join(".", wordsToReplace);
-            val relevantWords = wordsToReplace.subList(0, wordsToReplace.size() - 1);
-            val stringToKeep = String.join(".", relevantWords);
-            if (StringUtils.isNotBlank(stringToKeep)) {
-                return query.replace(stringToReplace, stringToKeep + "." + entry);
-            } else {
-                return query.replace(stringToReplace, entry);
-            }
-        }
-    }
-
-    public String insertString(String originalString,
-                               String stringToBeInserted,
-                               int index) {
-        StringBuilder newString = new StringBuilder(originalString);
-        newString.insert(index, stringToBeInserted);
-        return newString.toString();
     }
 }
