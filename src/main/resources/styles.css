@@ -6,3 +6,13 @@
     -fx-selection-bar:gray;
     -fx-selection-bar-non-focused: gray;
 }
+
+.styled-text-area {
+    -fx-padding: 5px;
+    -fx-border-color: #bcbcbc;
+    -fx-border-radius: 4px;
+}
+
+.context-menu {
+    -fx-skin: "com.sun.javafx.scene.control.skin.ContextMenuSkin";
+}

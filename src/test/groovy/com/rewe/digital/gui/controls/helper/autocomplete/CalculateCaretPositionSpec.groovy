@@ -18,6 +18,7 @@ class CalculateCaretPositionSpec extends Specification {
         value                                                 | initialPosition | expectedPosition
         'select value from topic'                             | 9               | 12
         'select value.payload from topic'                     | 11              | 20
+        'select value.payload\nfrom topic'                    | 11              | 20
         'select value.payload from topic'                     | 11              | 20
         'select value.payload from topic where value.payload' | 46              | 51
     }

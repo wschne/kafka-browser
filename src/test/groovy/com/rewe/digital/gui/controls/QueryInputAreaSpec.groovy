@@ -1,11 +1,7 @@
 package com.rewe.digital.gui.controls
 
 import com.rewe.digital.AbstractControlSpec
-import com.rewe.digital.gui.controls.helper.autocomplete.ApplySelectedEntry
-import com.rewe.digital.gui.controls.helper.autocomplete.AutocompletePopUp
-import com.rewe.digital.gui.controls.helper.autocomplete.CalculateCaretPosition
-import com.rewe.digital.gui.controls.helper.autocomplete.SparkSchemaTraverseUtil
-import com.rewe.digital.gui.controls.helper.autocomplete.SqlQueryAnalyzer
+import com.rewe.digital.gui.controls.helper.autocomplete.*
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.StackPane
@@ -22,7 +18,7 @@ import org.testfx.api.FxToolkit
 import org.testfx.service.adapter.impl.JavafxRobotAdapter
 import org.testfx.util.WaitForAsyncUtils
 
-class AutoCompleteTextFieldSpec extends AbstractControlSpec {
+class QueryInputAreaSpec extends AbstractControlSpec {
     JavafxRobotAdapter robotAdapter = new JavafxRobotAdapter()
     SparkSchemaTraverseUtil sparkSchemaTraverseUtil = Mock()
     AutocompletePopUp autocompletePopUp = Mock()
@@ -30,18 +26,23 @@ class AutoCompleteTextFieldSpec extends AbstractControlSpec {
     ApplySelectedEntry applySelectedEntry = Mock()
     CalculateCaretPosition calculateCaretPosition = Mock()
 
-    AutoCompleteTextField autoCompleteTextField
+    QueryInputArea autoCompleteTextField
+
+    Scene scene
+    Stage stage
 
     @Override
     void start(Stage stage) {
-        autoCompleteTextField = new AutoCompleteTextField(sparkSession: setupSpark(),
+        this.stage = stage;
+        autoCompleteTextField = new QueryInputArea(sparkSession: setupSpark(),
                 sparkSchemaTraverseUtil: sparkSchemaTraverseUtil,
                 autocompletePopUp: autocompletePopUp,
                 sqlQueryAnalyzer: sqlQueryAnalyzer,
                 applySelectedEntry: applySelectedEntry,
                 calculateCaretPosition: calculateCaretPosition)
         autoCompleteTextField.setId('autoCompleteTextField')
-        stage.setScene(new Scene(new StackPane(autoCompleteTextField), 100, 100))
+        scene = new Scene(new StackPane(autoCompleteTextField), 100, 100)
+        stage.setScene(scene)
         stage.show()
 
         robotAdapter.robotCreate(stage.getScene());
@@ -61,8 +62,8 @@ class AutoCompleteTextFieldSpec extends AbstractControlSpec {
 
         and:
         FxToolkit.setupScene({
-            autoCompleteTextField.setText(initialQuery)
-            autoCompleteTextField.positionCaret(caretPosition)
+            autoCompleteTextField.replaceText(initialQuery)
+            autoCompleteTextField.moveTo(caretPosition)
         })
 
         when:
@@ -81,20 +82,20 @@ class AutoCompleteTextFieldSpec extends AbstractControlSpec {
 
         and:
         FxToolkit.setupScene({
-            autoCompleteTextField.setText('select  from topic')
-            autoCompleteTextField.positionCaret(8)
+            autoCompleteTextField.replaceText('select  from topic')
+            autoCompleteTextField.moveTo(8)
         })
 
         when:
         robotAdapter.keyPress(KeyCode.CONTROL)
-        robotAdapter.keyPress(KeyCode.SPACE)
+        robotAdapter.keyRelease(KeyCode.SPACE)
 
         and:
         WaitForAsyncUtils.waitForFxEvents();
 
         then:
         pollingConditions.within(3) {
-            1 * autocompletePopUp.showEntriesPopUp(autoCompleteTextField, { List<StructField> fields ->
+            1 * autocompletePopUp.showEntriesPopUp(_, { List<StructField> fields ->
                 assert fields[0].name() == 'col_1'
                 assert fields[1].name() == 'col_2'
             })

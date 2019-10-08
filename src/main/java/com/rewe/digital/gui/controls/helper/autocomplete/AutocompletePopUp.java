@@ -1,11 +1,10 @@
 package com.rewe.digital.gui.controls.helper.autocomplete;
 
-import javafx.geometry.Side;
-import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.types.NumericType;
@@ -29,13 +28,13 @@ public class AutocompletePopUp {
         this.eventCallback = eventCallback;
     }
 
-    public void applySearchStringToSelectableEntries(final Node anchor,
+    public void applySearchStringToSelectableEntries(final Stage stage,
                                                      final List<StructField> availableEntries,
                                                      final String typingWord) {
         val searchResult = new LinkedList<>(findMatchingFieldsByName(availableEntries, typingWord));
         if (searchResult.size() > 0) {
             populatePopup(searchResult);
-            showPopup(anchor);
+            showPopup(stage);
         } else {
             entriesPopup.hide();
         }
@@ -47,15 +46,15 @@ public class AutocompletePopUp {
                 .collect(Collectors.toList());
     }
 
-    public void showEntriesPopUp(final Node anchor,
+    public void showEntriesPopUp(final Stage stage,
                                  final List<StructField> availableEntries) {
         populatePopup(new ArrayList<>(availableEntries));
-        showPopup(anchor);
+        showPopup(stage);
     }
 
-    public void showPopup(Node anchor) {
+    private void showPopup(Stage stage) {
         if (!entriesPopup.isShowing()) {
-            entriesPopup.show(anchor, Side.BOTTOM, 0, 0);
+            entriesPopup.show(stage);
         }
     }
 
@@ -82,6 +81,10 @@ public class AutocompletePopUp {
         entriesPopup.getItems().addAll(menuItems);
     }
 
+    public void hide(){
+        entriesPopup.hide();
+    }
+
     private Image getMenuIconForType(StructField result) {
         if (result.dataType() instanceof StructType) {
             return new Image(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images/struct.png")));
@@ -90,5 +93,13 @@ public class AutocompletePopUp {
         } else {
             return new Image(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("images/string.png")));
         }
+    }
+
+    public void setX(double x) {
+        this.entriesPopup.setX(x);
+    }
+
+    public void setY(double y) {
+        this.entriesPopup.setY(y);
     }
 }
