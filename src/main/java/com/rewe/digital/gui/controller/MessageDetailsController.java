@@ -5,20 +5,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.rewe.digital.kafka.KafkaQueryExecutor;
 import com.rewe.digital.messaging.events.ShowMessageDetailsEvent;
+import com.rewe.digital.messaging.events.querying.ShowQueryResultEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.util.StringConverter;
+import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.ResourceBundle;
 
@@ -30,10 +35,24 @@ public class MessageDetailsController implements Initializable {
     @FXML
     TreeView messageViewAsTree;
 
-    @Inject
+    @FXML
+    private TextArea schemaText;
+
+    @FXML
+    private Tab schemaTab;
+
     private EventBus eventBus;
 
+    private KafkaQueryExecutor kafkaQueryExecutor;
+
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Inject
+    public MessageDetailsController(final EventBus eventBus,
+                                    final KafkaQueryExecutor kafkaQueryExecutor) {
+        this.eventBus = eventBus;
+        this.kafkaQueryExecutor = kafkaQueryExecutor;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -47,20 +66,8 @@ public class MessageDetailsController implements Initializable {
                 () -> {
                     if (messageDetailsEvent.getMessage() instanceof Map) {
                         final Map messageAsMap = (Map) messageDetailsEvent.getMessage();
-                        if (messageAsMap.containsKey("value") &&
-                                messageAsMap.containsKey("key") &&
-                                messageAsMap.containsKey("offset") &&
-                                messageAsMap.containsKey("timestamp") &&
-                                messageAsMap.get("value") instanceof Map) {
-                            Map value = (Map) messageAsMap.get("value");
-                            messageViewAsTree.setRoot(createTree(value));
-                            messageViewAsText.setText(getMessageAsJsonString(value));
-                        } else {
-                            messageViewAsTree.setRoot(createTree(messageAsMap));
-                            messageViewAsText.setText(getMessageAsJsonString(messageAsMap));
-                        }
-
-                        messageViewAsTree.setEditable(false);
+                        messageViewAsTree.setRoot(createTree(messageAsMap));
+                        messageViewAsText.setText(getMessageAsJsonString(messageAsMap));
                         messageViewAsTree.setShowRoot(false);
 
                         messageViewAsTree.setCellFactory(t -> {
@@ -68,9 +75,25 @@ public class MessageDetailsController implements Initializable {
                             cell.setConverter(new Converter(cell));
                             return cell;
                         });
+                    } else if (messageDetailsEvent.getMessage() instanceof byte[]) {
+                        val messageAsArray = (byte[]) messageDetailsEvent.getMessage();
+                        messageViewAsText.setText(Arrays.toString(messageAsArray));
                     } else {
                         messageViewAsText.setText(messageDetailsEvent.getMessage().toString());
                     }
+
+                    messageViewAsTree.setEditable(false);
+                    messageViewAsText.setEditable(false);
+                    showSchemaOfKnownTopics(messageDetailsEvent.getTopic());
+                }
+        );
+    }
+
+    @Subscribe
+    private void showMessageSchema(ShowQueryResultEvent queryResultEvent) {
+        Platform.runLater(
+                () -> {
+                    showSchemaOfKnownTopics(queryResultEvent.getTopicName());
                 }
         );
     }
@@ -161,5 +184,11 @@ public class MessageDetailsController implements Initializable {
             return mi;
         }
 
+    }
+
+    private void showSchemaOfKnownTopics(final String topic) {
+        schemaText.clear();
+        val schema = kafkaQueryExecutor.getTopicSchema(topic);
+        schema.ifPresent(structType -> schemaText.setText(structType.treeString()));
     }
 }

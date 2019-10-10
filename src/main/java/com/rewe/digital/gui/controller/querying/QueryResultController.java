@@ -5,10 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.rewe.digital.gui.controls.helper.QueryResultTableColumnBuilder;
-import com.rewe.digital.kafka.KafkaQueryExecutor;
+import com.rewe.digital.messaging.events.ShowMessageDetailsEvent;
 import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
-import com.rewe.digital.messaging.events.ShowMessageDetailsEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryResultEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryingErrorEvent;
 import javafx.application.Platform;
@@ -25,7 +24,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.spark.sql.types.StructType;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -45,12 +43,6 @@ public class QueryResultController implements Initializable {
     ObjectMapper objectMapper = new ObjectMapper();
 
     @FXML
-    private TextArea schemaText;
-
-    @FXML
-    private Tab schemaTab;
-
-    @FXML
     private Tab currentSearchResultTab;
     @FXML
     private TableView currentSearchResult;
@@ -62,15 +54,12 @@ public class QueryResultController implements Initializable {
     public TextField filterSearchResultInput;
 
     private final EventBus eventBus;
-    private final KafkaQueryExecutor kafkaQueryExecutor;
     private final QueryResultTableColumnBuilder tableColumnBuilder;
 
     @Inject
     public QueryResultController(final EventBus eventBus,
-                                 final KafkaQueryExecutor kafkaQueryExecutor,
                                  final QueryResultTableColumnBuilder tableColumnBuilder) {
         this.eventBus = eventBus;
-        this.kafkaQueryExecutor = kafkaQueryExecutor;
         this.tableColumnBuilder = tableColumnBuilder;
     }
 
@@ -80,13 +69,9 @@ public class QueryResultController implements Initializable {
         eventBus.register(this);
 
         searchResultTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
-            if (newTab == schemaTab) {
-                showSchemaOfKnownTopics();
-            } else {
-                if(isSelectedTabASearchResultTab(newTab)) {
-                    currentSearchResultTab = newTab;
-                    currentSearchResult = (TableView) newTab.getContent();
-                }
+            if (isSelectedTabASearchResultTab(newTab)) {
+                currentSearchResultTab = newTab;
+                currentSearchResult = (TableView) newTab.getContent();
             }
         });
     }
@@ -116,7 +101,7 @@ public class QueryResultController implements Initializable {
         setResultTargetTab(showQueryResultEvent, result);
 
         currentSearchResult.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedMessage) -> {
-            eventBus.post(new ShowMessageDetailsEvent(selectedMessage));
+            eventBus.post(new ShowMessageDetailsEvent(showQueryResultEvent.getTopicName(), selectedMessage));
         });
 
         addTableColumns(currentSearchResult, result);
@@ -180,17 +165,6 @@ public class QueryResultController implements Initializable {
 
     private boolean isSelectedTabASearchResultTab(final Tab newTab) {
         return !newTab.getText().contains("Error") && newTab.getContent() instanceof TableView;
-    }
-
-    private void showSchemaOfKnownTopics() {
-        StringBuilder topicSchemas = new StringBuilder();
-        schemaText.clear();
-        subscribedTopics.forEach(s -> {
-            topicSchemas.append("------------------ ").append(s).append(" --------------------\n");
-            Optional<StructType> schema = kafkaQueryExecutor.getTopicSchema(s);
-            schema.ifPresent(structType -> topicSchemas.append(structType.treeString()).append('\n'));
-        });
-        schemaText.setText(topicSchemas.toString());
     }
 
     private void addTableColumns(final TableView tableToAddColumnsto, final List<Map> tableData) {

@@ -16,5 +16,8 @@
         <Tab text="Tree view" closable="false">
             <TreeView fx:id="messageViewAsTree"/>
         </Tab>
+        <Tab fx:id="schemaTab" closable="false" text="Schema">
+            <TextArea fx:id="schemaText" editable="false" />
+        </Tab>
     </TabPane>
 </AnchorPane>
