@@ -6,7 +6,6 @@
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
     <SplitPane dividerPositions="0.1" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <fx:include source="query_composition.fxml" />
-        <fx:include source="query_result.fxml" />
-        <fx:include source="message_details.fxml" />
+        <fx:include source="query_results.fxml" />
     </SplitPane>
 </AnchorPane>

@@ -72,8 +72,6 @@ public class QueryCompositionController implements Initializable {
 
         queryInput.setOnEnterEventCallback(keyEvent -> {
             if (keyEvent.isControlDown()) {
-                executeQuery(ExecuteQueryEvent.ResultTarget.NEW_WINDOW);
-            } else {
                 executeQuery(ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW);
             }
         });

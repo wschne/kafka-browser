@@ -11,7 +11,7 @@ import spock.lang.Unroll
 
 import static com.rewe.digital.messaging.events.querying.ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW
 
-class MessageDetailsControllerSpec extends AbstractApplicationSpec {
+class MessageDetailsSpec extends AbstractApplicationSpec {
     KafkaQueryExecutor kafkaQueryExecutor = Mock()
 
     @Override
