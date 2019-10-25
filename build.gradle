@@ -63,6 +63,7 @@ dependencies {
     compile ('org.apache.spark:spark-core_2.12:2.4.3')
     compile group: 'org.apache.spark', name: 'spark-streaming_2.12', version: '2.4.3'
     compile (group: 'org.apache.spark', name: 'spark-sql_2.12', version: '2.4.3')
+    compile group: 'org.fxmisc.richtext', name: 'richtextfx', version: '0.10.2'
 
     runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:win"
     runtimeOnly "org.openjfx:javafx-graphics:$javafx.version:linux"

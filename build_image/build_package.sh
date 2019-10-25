@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 
 JPACKAGER_MAC=jdk.packager-osx.zip
 JPACKAGER_LINUX=jdk.packager-linux.zip

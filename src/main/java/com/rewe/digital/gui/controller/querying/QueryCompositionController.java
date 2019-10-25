@@ -3,6 +3,7 @@ package com.rewe.digital.gui.controller.querying;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.rewe.digital.gui.StageFactory;
+import com.rewe.digital.gui.controls.QueryInputArea;
 import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
 import com.rewe.digital.messaging.events.TopicEmptyEvent;
@@ -15,15 +16,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitMenuButton;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import org.apache.spark.sql.SparkSession;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,7 +35,10 @@ import java.util.ResourceBundle;
 public class QueryCompositionController implements Initializable {
 
     @FXML
-    private TextField queryInput;
+    public VirtualizedScrollPane queryInputScrollPane;
+
+    @FXML
+    private QueryInputArea queryInput;
 
     @FXML
     private SplitMenuButton executeButton;
@@ -49,11 +52,16 @@ public class QueryCompositionController implements Initializable {
     @Inject
     private StageFactory stageFactory;
 
+    @Inject
+    private SparkSession sparkSession;
+
     private Stage queryHistoryWindow;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         eventBus.register(this);
+
+        queryInput.sparkSession = sparkSession;
 
         queryHistoryWindow = stageFactory.createStage("scenes/query/query_history.fxml",
                 "styles.css",
@@ -61,17 +69,14 @@ public class QueryCompositionController implements Initializable {
         queryHistoryWindow.setResizable(false);
         queryHistoryWindow.setAlwaysOnTop(true);
         queryHistoryWindow.initStyle(StageStyle.UTILITY);
-    }
 
-    @FXML
-    public void onEnter(KeyEvent ae) {
-        if (ae.getCode() == KeyCode.ENTER) {
-            if (ae.isControlDown()) {
+        queryInput.setOnEnterEventCallback(keyEvent -> {
+            if (keyEvent.isControlDown()) {
                 executeQuery(ExecuteQueryEvent.ResultTarget.NEW_WINDOW);
             } else {
                 executeQuery(ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW);
             }
-        }
+        });
     }
 
     @FXML
@@ -106,7 +111,8 @@ public class QueryCompositionController implements Initializable {
                     labelWaitForData.setVisible(true);
                     labelWaitForData.setText("Wait for data to appear...");
                     executeButton.setDisable(true);
-                    queryInput.setText(waitForDataToAppear.getQuery().getQuery());
+                    queryInput.clear();
+                    queryInput.replaceText(waitForDataToAppear.getQuery().getQuery());
                 }
         );
     }
@@ -114,7 +120,8 @@ public class QueryCompositionController implements Initializable {
     @Subscribe
     public void handleExecuteQueryEvent(final ExecuteQueryEvent executeQueryEvent) {
         Platform.runLater(() -> {
-            queryInput.setText(executeQueryEvent.getQuery().getQuery());
+            queryInput.clear();
+            queryInput.replaceText(executeQueryEvent.getQuery().getQuery());
         });
     }
 
