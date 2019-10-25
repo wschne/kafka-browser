@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Injector;
 import com.rewe.digital.gui.StageFactory;
 import com.rewe.digital.gui.controls.helper.QueryResultTableColumnBuilder;
-import com.rewe.digital.messaging.events.ShowMessageDetailsEvent;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Named
 public class QueryResultDetails extends AnchorPane {
-    private final MessageDetails messageDetailsPane;
+    private MessageDetails messageDetailsPane;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -36,12 +35,15 @@ public class QueryResultDetails extends AnchorPane {
     private TextField filterSearchResultInput;
 
     private final QueryResultTableColumnBuilder tableColumnBuilder;
+    private final Injector injector;
+    private VBox vBoxContainer;
 
     @Inject
     public QueryResultDetails(final QueryResultTableColumnBuilder tableColumnBuilder,
                               final StageFactory stageFactory,
                               final Injector injector) {
         this.tableColumnBuilder = tableColumnBuilder;
+        this.injector = injector;
 
         val pane = stageFactory.getParent("scenes/controls/query_result_details.fxml");
         this.getChildren().addAll(pane.getChildrenUnmodifiable());
@@ -49,11 +51,6 @@ public class QueryResultDetails extends AnchorPane {
         currentSearchResult = (TableView) this.lookup("#currentSearchResult");
         currentSearchResult.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         filterSearchResultInput = (TextField) this.lookup("#filterSearchResultInput");
-
-        this.messageDetailsPane = injector.getInstance(MessageDetails.class);
-
-        VBox container = (VBox) lookup("VBox");
-        container.getChildren().add(messageDetailsPane);
     }
 
     public void showSearchResult(final List<Map> result,
@@ -61,7 +58,7 @@ public class QueryResultDetails extends AnchorPane {
         addTableColumns(currentSearchResult, result);
 
         currentSearchResult.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedMessage) -> {
-            this.messageDetailsPane.showMessageDetails(topic, selectedMessage);
+            getMessageDetails().showMessageDetails(topic, selectedMessage);
         });
 
         val observableResult = FXCollections.observableArrayList(result);
@@ -110,5 +107,23 @@ public class QueryResultDetails extends AnchorPane {
                     }
             );
         });
+    }
+
+    private MessageDetails getMessageDetails() {
+        if (this.messageDetailsPane == null) {
+            this.messageDetailsPane = injector.getInstance(MessageDetails.class);
+
+            getVboxContainer().getChildren().add(messageDetailsPane);
+        }
+
+        return this.messageDetailsPane;
+    }
+
+    private VBox getVboxContainer() {
+        if (this.vBoxContainer == null) {
+            this.vBoxContainer = (VBox) lookup("VBox");
+        }
+
+        return vBoxContainer;
     }
 }

@@ -72,11 +72,10 @@ public class MessageDetails extends AnchorPane {
                         messageViewAsText.setText(message.toString());
                     }
 
-                    messageViewAsTree.setEditable(false);
                     messageViewAsText.setEditable(false);
-                    showSchemaOfKnownTopics(topic);
                 }
         );
+        showSchemaOfKnownTopics(topic);
     }
 
     private String getMessageAsJsonString(Map messageAsMap) {
