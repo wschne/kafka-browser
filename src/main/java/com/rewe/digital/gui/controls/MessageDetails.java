@@ -1,66 +1,63 @@
-package com.rewe.digital.gui.controller;
+package com.rewe.digital.gui.controls;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.rewe.digital.gui.StageFactory;
+import com.rewe.digital.kafka.KafkaQueryExecutor;
 import com.rewe.digital.messaging.events.ShowMessageDetailsEvent;
+import com.rewe.digital.messaging.events.querying.ShowQueryResultEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.TextFieldTreeCell;
+import javafx.scene.layout.AnchorPane;
 import javafx.util.StringConverter;
+import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 @Named
-public class MessageDetailsController implements Initializable {
+public class MessageDetails extends AnchorPane {
 
-    @FXML
-    TextArea messageViewAsText;
-    @FXML
-    TreeView messageViewAsTree;
+    private TextArea messageViewAsText;
+    private TreeView messageViewAsTree;
+    private TextArea schemaText;
 
-    @Inject
-    private EventBus eventBus;
+    private KafkaQueryExecutor kafkaQueryExecutor;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    @Inject
+    public MessageDetails(final KafkaQueryExecutor kafkaQueryExecutor,
+                          final StageFactory stageFactory) {
+        this.kafkaQueryExecutor = kafkaQueryExecutor;
+
+        val pane = stageFactory.getParent("scenes/controls/message_details.fxml");
+        this.getChildren().addAll(pane.getChildrenUnmodifiable());
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        eventBus.register(this);
+
+        messageViewAsText = (TextArea) this.lookup("#messageViewAsText");
+        schemaText = (TextArea) this.lookup("#schemaText");
+        messageViewAsTree = (TreeView) this.lookup("#messageViewAsTree");
     }
 
-    @Subscribe
-    private void showMessageDetails(ShowMessageDetailsEvent messageDetailsEvent) {
+    public void showMessageDetails(final String topic, final Object message) {
         Platform.runLater(
                 () -> {
-                    if (messageDetailsEvent.getMessage() instanceof Map) {
-                        final Map messageAsMap = (Map) messageDetailsEvent.getMessage();
-                        if (messageAsMap.containsKey("value") &&
-                                messageAsMap.containsKey("key") &&
-                                messageAsMap.containsKey("offset") &&
-                                messageAsMap.containsKey("timestamp") &&
-                                messageAsMap.get("value") instanceof Map) {
-                            Map value = (Map) messageAsMap.get("value");
-                            messageViewAsTree.setRoot(createTree(value));
-                            messageViewAsText.setText(getMessageAsJsonString(value));
-                        } else {
-                            messageViewAsTree.setRoot(createTree(messageAsMap));
-                            messageViewAsText.setText(getMessageAsJsonString(messageAsMap));
-                        }
-
-                        messageViewAsTree.setEditable(false);
+                    if (message instanceof Map) {
+                        final Map messageAsMap = (Map) message;
+                        messageViewAsTree.setRoot(createTree(messageAsMap));
+                        messageViewAsText.setText(getMessageAsJsonString(messageAsMap));
                         messageViewAsTree.setShowRoot(false);
 
                         messageViewAsTree.setCellFactory(t -> {
@@ -68,11 +65,17 @@ public class MessageDetailsController implements Initializable {
                             cell.setConverter(new Converter(cell));
                             return cell;
                         });
+                    } else if (message instanceof byte[]) {
+                        val messageAsArray = (byte[]) message;
+                        messageViewAsText.setText(Arrays.toString(messageAsArray));
                     } else {
-                        messageViewAsText.setText(messageDetailsEvent.getMessage().toString());
+                        messageViewAsText.setText(message.toString());
                     }
+
+                    messageViewAsText.setEditable(false);
                 }
         );
+        showSchemaOfKnownTopics(topic);
     }
 
     private String getMessageAsJsonString(Map messageAsMap) {
@@ -161,5 +164,11 @@ public class MessageDetailsController implements Initializable {
             return mi;
         }
 
+    }
+
+    private void showSchemaOfKnownTopics(final String topic) {
+        schemaText.clear();
+        val schema = kafkaQueryExecutor.getTopicSchema(topic);
+        schema.ifPresent(structType -> schemaText.setText(structType.treeString()));
     }
 }

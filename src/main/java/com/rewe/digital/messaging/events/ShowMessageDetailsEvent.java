@@ -8,5 +8,6 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 public class ShowMessageDetailsEvent<T> {
+    private String topic;
     private T message;
 }

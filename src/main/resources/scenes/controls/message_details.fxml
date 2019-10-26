@@ -6,8 +6,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TextArea?>
 <AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.rewe.digital.gui.controller.MessageDetailsController">
+            xmlns:fx="http://javafx.com/fxml">
     <TabPane AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
         <Tab text="Plain view" closable="false">
@@ -15,6 +14,9 @@
         </Tab>
         <Tab text="Tree view" closable="false">
             <TreeView fx:id="messageViewAsTree"/>
+        </Tab>
+        <Tab fx:id="schemaTab" closable="false" text="Schema">
+            <TextArea fx:id="schemaText" editable="false" />
         </Tab>
     </TabPane>
 </AnchorPane>
