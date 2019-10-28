@@ -1,10 +1,8 @@
 package com.rewe.digital.gui.controller.connections
 
-import com.rewe.digital.AbstractKafkaSpec
-import com.rewe.digital.kafka.topics.Topic
+import com.rewe.digital.AbstractApplicationWithKafkaSpec
 import com.rewe.digital.model.connection.ConnectionSettings
 import groovy.util.logging.Slf4j
-import javafx.scene.Scene
 import javafx.scene.control.Label
 import javafx.scene.control.ListView
 import javafx.scene.control.TextField
@@ -12,7 +10,7 @@ import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
 
 @Slf4j
-class OverallConnectionsControllerComponentSpec extends AbstractKafkaSpec {
+class OverallConnectionsControllerComponentSpec extends AbstractApplicationWithKafkaSpec {
     @Override
     String getSceneFileToTest() {
         return "scenes/connections/overall_connections.fxml"

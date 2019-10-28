@@ -1,6 +1,6 @@
 package com.rewe.digital.gui.controller.connections
 
-import com.rewe.digital.AbstractKafkaSpec
+import com.rewe.digital.AbstractApplicationWithKafkaSpec
 import com.rewe.digital.model.connection.BrokerSecuritySettings
 import com.rewe.digital.model.connection.BrokerSecurityType
 import com.rewe.digital.model.connection.ConnectionSettings
@@ -10,7 +10,7 @@ import org.testfx.api.FxToolkit
 import spock.lang.Unroll
 
 @Slf4j
-class SaslSslDetailsControllerComponentSpec extends AbstractKafkaSpec {
+class SaslSslDetailsControllerComponentSpec extends AbstractApplicationWithKafkaSpec {
     @Override
     String getSceneFileToTest() {
         return "scenes/connections/overall_connections.fxml"

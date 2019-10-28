@@ -1,7 +1,7 @@
-package com.rewe.digital.messaging.events;
+package com.rewe.digital.messaging.events.kafka;
 
 import com.rewe.digital.gui.topiclist.TopicListItem;
-import com.rewe.digital.kafka.OffsetConfigType;
+import com.rewe.digital.kafka.OffsetConfig;
 import javafx.event.Event;
 import javafx.event.EventType;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.time.temporal.TemporalUnit;
 @EqualsAndHashCode(callSuper = true)
 public class StartKafkaConsumerEvent extends Event {
     private final String topicName;
-    private final OffsetConfigType topicOffset;
+    private final OffsetConfig topicOffset;
     private final Integer numberOfMessages;
     private final Integer timeUntilNow;
     private final TemporalUnit timeUnit;
@@ -21,7 +21,7 @@ public class StartKafkaConsumerEvent extends Event {
 
     public StartKafkaConsumerEvent(EventType<? extends Event> eventType,
                                    final String topicName,
-                                   final OffsetConfigType topicOffset,
+                                   final OffsetConfig topicOffset,
                                    final int numberOfMessages,
                                    final TopicListItem.TopicListItemClickedEvent topicListItemClickedEvent) {
         super(eventType);

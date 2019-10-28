@@ -3,8 +3,8 @@ package com.rewe.digital.gui.controller;
 import com.rewe.digital.gui.handler.StartKafkaConsumerEventHandler;
 import com.rewe.digital.gui.topiclist.TopicListItem;
 import com.rewe.digital.kafka.KafkaConnector;
-import com.rewe.digital.kafka.OffsetConfigType;
-import com.rewe.digital.messaging.events.StartKafkaConsumerEvent;
+import com.rewe.digital.kafka.OffsetConfig;
+import com.rewe.digital.messaging.events.kafka.StartKafkaConsumerEvent;
 import com.victorlaerte.asynctask.AsyncTask;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -17,7 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
-import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -110,9 +109,9 @@ public class ConsumerConfigController implements Initializable {
     }
 
     private StartKafkaConsumerEvent getStartKafkaConsumerEvent() {
-        final OffsetConfigType topicOffset = getOffsetType();
+        final OffsetConfig topicOffset = getOffsetType();
         final String topicName = topicListItemClickedEvent.topicName;
-        if (topicOffset == OffsetConfigType.TIME_OFFSET) {
+        if (topicOffset == OffsetConfig.TIME_OFFSET) {
             final Integer time = Integer.valueOf(timeUntilNow.getText());
             final TemporalUnit timeUnit = getSelectedTemporalUnit();
             return new StartKafkaConsumerEvent(EventType.ROOT,
@@ -143,13 +142,13 @@ public class ConsumerConfigController implements Initializable {
         }
     }
 
-    private OffsetConfigType getOffsetType() {
+    private OffsetConfig getOffsetType() {
         final String selectedOffset = (String) offsetSelection.getSelectionModel().getSelectedItem();
-        return OffsetConfigType.valueOf(selectedOffset);
+        return OffsetConfig.valueOf(selectedOffset);
     }
 
     public void setVisibleInput(ActionEvent actionEvent) {
-        if (getOffsetType() == OffsetConfigType.TIME_OFFSET) {
+        if (getOffsetType() == OffsetConfig.TIME_OFFSET) {
             timeUnitSelection.setVisible(true);
             timeUntilNow.setVisible(true);
             consumeMessagesInfo.setVisible(false);

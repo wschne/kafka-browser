@@ -1,14 +1,13 @@
 package com.rewe.digital.gui.controller
 
-import com.rewe.digital.AbstractKafkaSpec
+import com.rewe.digital.AbstractApplicationSpec
 import com.rewe.digital.kafka.topics.Topic
 import com.rewe.digital.kafka.topics.TopicsService
-import com.rewe.digital.messaging.events.KafkaConnectionSelectedEvent
-import com.rewe.digital.model.connection.ConnectionSettings
+import com.rewe.digital.messaging.events.kafka.KafkaConnectionSelectedEvent
 import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
 
-class KafkaBrowserControllerComponentSpec extends AbstractKafkaSpec {
+class KafkaBrowserControllerComponentSpec extends AbstractApplicationSpec {
     @Override
     String getSceneFileToTest() {
         return "scenes/kafka_browser.fxml"
@@ -16,17 +15,17 @@ class KafkaBrowserControllerComponentSpec extends AbstractKafkaSpec {
 
     def "Connect to a cluster and show the list of topics"() {
         given:
-        def firstClusterConnectionSettings = new ConnectionSettings('first_cluster', firstKafkaContainer.getPlaintextBootstrapServers())
-        def secondClusterConnectionSettings = new ConnectionSettings('second_cluster', secondKafkaContainer.getPlaintextBootstrapServers())
-        connectionRepository.save(firstClusterConnectionSettings)
-        connectionRepository.save(secondClusterConnectionSettings)
+        def topicsService = Mock(TopicsService)
+        def firstTopicList = [new Topic('a', [:]),new Topic('b', [:]),new Topic('c', [:])]
+        def secondTopicList = [new Topic('d', [:]), new Topic('e', [:]), new Topic('f', [:]), new Topic('g', [:])]
 
         and:
-        connectionRepository.setCurrentConnectionSettings(firstClusterConnectionSettings)
+        topicsService.topics() >>> [firstTopicList, secondTopicList]
 
         when:
         FxToolkit.setupStage({
             loader.getController().initialize(null, null)
+            loader.getController().topicsService = topicsService
         })
 
         and:
@@ -35,25 +34,15 @@ class KafkaBrowserControllerComponentSpec extends AbstractKafkaSpec {
         then:
         conditions.within(3) {
             FxAssert.verifyThat('#availableTopicsList', { it.visible == true })
-            FxAssert.verifyThat('#availableTopicsList', { it.items.size() == 1})
-        }
-
-        and:
-        conditions.within(30) {
-            secondKafkaContainer.consumer.listTopics().size() == 3
+            FxAssert.verifyThat('#availableTopicsList', { it.items.size() == firstTopicList.size()})
         }
 
         when:
-        connectionRepository.setCurrentConnectionSettings(secondClusterConnectionSettings)
-
-        and:
-        FxToolkit.setupStage({
-            eventBus.post(new KafkaConnectionSelectedEvent())
-        })
+        eventBus.post(new KafkaConnectionSelectedEvent())
 
         then:
         conditions.within(3) {
-            FxAssert.verifyThat('#availableTopicsList', { it.items.size() == 3})
+            FxAssert.verifyThat('#availableTopicsList', { it.items.size() == secondTopicList.size()})
         }
     }
 }

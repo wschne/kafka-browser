@@ -53,14 +53,14 @@ public class KafkaConnector {
     }
 
     public void initKafkaConsumer(final String topic,
-                                  final OffsetConfigType offsetConfigType,
+                                  final OffsetConfig offsetConfig,
                                   final Integer totalMessagesWanted,
                                   final Runnable consumptionFinishedCallback) {
         cleanupTopicDir(topic);
         final KafkaConsumer<String, String> kafkaConsumer = kafkaConsumerFactory.get();
         List<TopicPartition> partitions = assignTopic(topic, kafkaConsumer);
 
-        if (offsetConfigType == OffsetConfigType.LATEST) {
+        if (offsetConfig == OffsetConfig.LATEST) {
             rewindConsumerOffset(totalMessagesWanted, kafkaConsumer, partitions);
         }
 

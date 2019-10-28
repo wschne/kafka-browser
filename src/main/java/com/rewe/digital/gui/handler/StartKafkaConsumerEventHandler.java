@@ -4,10 +4,10 @@ import com.google.common.eventbus.EventBus;
 import com.rewe.digital.gui.topiclist.TopicListItem;
 import com.rewe.digital.kafka.KafkaConnector;
 import com.rewe.digital.kafka.KafkaQueryExecutor;
-import com.rewe.digital.kafka.OffsetConfigType;
+import com.rewe.digital.kafka.OffsetConfig;
 import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
-import com.rewe.digital.messaging.events.StartKafkaConsumerEvent;
+import com.rewe.digital.messaging.events.kafka.StartKafkaConsumerEvent;
 import com.rewe.digital.messaging.events.TopicEmptyEvent;
 import com.rewe.digital.messaging.events.WaitForKafkaMessagesEvent;
 import com.rewe.digital.model.Query;
@@ -75,7 +75,7 @@ public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaCo
                     }
                 };
 
-                if (event.getTopicOffset() == OffsetConfigType.EARLIEST || event.getTopicOffset() == OffsetConfigType.LATEST) {
+                if (event.getTopicOffset() == OffsetConfig.EARLIEST || event.getTopicOffset() == OffsetConfig.LATEST) {
                     kafkaConnector.initKafkaConsumer(topicName, event.getTopicOffset(), event.getNumberOfMessages(), () -> {
                         topicListItemClickedEvent.topicConsumerStateChangedEvent.apply(TopicListItem.ButtonState.stopped);
                         eventBus.post(new QueryExecutionFinishedEvent(topicName));

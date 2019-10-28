@@ -1,13 +1,13 @@
 package com.rewe.digital.kafka;
 
-public enum OffsetConfigType {
+public enum OffsetConfig {
     LATEST("latest"),
     EARLIEST("earliest"),
     TIME_OFFSET("timeOffset");
 
     private final String kafkaOffsetType;
 
-    OffsetConfigType(String kafkaOffsetType) {
+    OffsetConfig(String kafkaOffsetType) {
         this.kafkaOffsetType = kafkaOffsetType;
     }
 

@@ -8,7 +8,7 @@ import com.rewe.digital.gui.topiclist.ConsumerStartStopEventHandler;
 import com.rewe.digital.gui.topiclist.TopicListItem;
 import com.rewe.digital.kafka.topics.Topic;
 import com.rewe.digital.kafka.topics.TopicsService;
-import com.rewe.digital.messaging.events.KafkaConnectionSelectedEvent;
+import com.rewe.digital.messaging.events.kafka.KafkaConnectionSelectedEvent;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

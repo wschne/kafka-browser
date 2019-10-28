@@ -6,7 +6,7 @@ import com.rewe.digital.gui.StageFactory;
 import com.rewe.digital.gui.utils.Sleeper;
 import com.rewe.digital.kafka.KafkaConnectionRepository;
 import com.rewe.digital.kafka.KafkaConsumerFactory;
-import com.rewe.digital.messaging.events.KafkaConnectionSelectedEvent;
+import com.rewe.digital.messaging.events.kafka.KafkaConnectionSelectedEvent;
 import com.rewe.digital.model.connection.ConnectionSettings;
 import com.victorlaerte.asynctask.AsyncTask;
 import javafx.application.Platform;

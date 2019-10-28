@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import static java.time.Duration.ofSeconds;
 
 @Named
 public class TopicsService {
@@ -38,8 +41,8 @@ public class TopicsService {
     public List<Topic> topics() {
         Stopwatch watch = Stopwatch.createStarted();
         KafkaConsumer<String, String> kafkaConsumer = kafkaConsumerFactory.get();
-        Map<String, List<PartitionInfo>> topics = kafkaConsumer.listTopics();
-        LOG.info("Fetching topics took: {}", watch);
+        Map<String, List<PartitionInfo>> topics = kafkaConsumer.listTopics(ofSeconds(1));
+        LOG.info("Fetching {} topics took: {}", topics.size(), watch);
 
         final List<Topic> availableTopics = topics.keySet().stream()
                 .map(partitionInfos -> new Topic(partitionInfos, Collections.emptyMap()))
@@ -54,28 +57,5 @@ public class TopicsService {
         availableTopics.sort(Comparator.comparing(Topic::getId));
 
         return availableTopics;
-    }
-
-    public Topic byName(final String name) {
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        KafkaConsumer<String, String> kafkaConsumer = kafkaConsumerFactory.get();
-        final List<PartitionInfo> partitionInfos = kafkaConsumer.partitionsFor(name);
-        LOG.info("Fetching topics took: {}", stopwatch);
-        return new Topic(name, offsets(kafkaConsumer, name, partitionInfos));
-    }
-
-    private Map<Integer, Long> offsets(
-            KafkaConsumer<String, String> kafkaConsumer,
-            String topicName, List<PartitionInfo> infos) {
-        List<TopicPartition> partitions =
-                infos.stream()
-                        .map(partitionInfo -> new TopicPartition(topicName, partitionInfo.partition()))
-                        .collect(Collectors.toList());
-
-        Stopwatch watch = Stopwatch.createStarted();
-        Map<TopicPartition, Long> offsets = kafkaConsumer.endOffsets(partitions);
-        LOG.info("Fetching offset for topic {} took: {}", topicName, watch);
-        return offsets.entrySet().stream()
-                .collect(Collectors.toMap(o -> o.getKey().partition(), Entry::getValue));
     }
 }

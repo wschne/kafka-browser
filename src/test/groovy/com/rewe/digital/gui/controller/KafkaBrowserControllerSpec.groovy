@@ -3,7 +3,7 @@ package com.rewe.digital.gui.controller
 import com.rewe.digital.AbstractApplicationSpec
 import com.rewe.digital.kafka.topics.Topic
 import com.rewe.digital.kafka.topics.TopicsService
-import com.rewe.digital.messaging.events.KafkaConnectionSelectedEvent
+import com.rewe.digital.messaging.events.kafka.KafkaConnectionSelectedEvent
 import org.testfx.api.FxAssert
 import org.testfx.api.FxToolkit
 import spock.lang.Unroll
