@@ -2,14 +2,16 @@ package com.rewe.digital.gui.handler;
 
 import com.google.common.eventbus.EventBus;
 import com.rewe.digital.gui.topiclist.TopicListItem;
-import com.rewe.digital.kafka.KafkaConnector;
+import com.rewe.digital.kafka.KafkaToSparkConnector;
 import com.rewe.digital.kafka.KafkaQueryExecutor;
 import com.rewe.digital.kafka.OffsetConfig;
-import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
-import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
-import com.rewe.digital.messaging.events.kafka.StartKafkaConsumerEvent;
+import com.rewe.digital.kafka.consumer.KafkaConsumptionState;
+import com.rewe.digital.kafka.consumer.KafkaConsumptionStateCallback;
 import com.rewe.digital.messaging.events.TopicEmptyEvent;
 import com.rewe.digital.messaging.events.WaitForKafkaMessagesEvent;
+import com.rewe.digital.messaging.events.kafka.StartKafkaConsumerEvent;
+import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
+import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
 import com.rewe.digital.model.Query;
 import com.victorlaerte.asynctask.AsyncTask;
 import javafx.event.EventHandler;
@@ -24,7 +26,7 @@ import static org.awaitility.Duration.ONE_MINUTE;
 @Named
 public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaConsumerEvent> {
     @Inject
-    private KafkaConnector kafkaConnector;
+    private KafkaToSparkConnector kafkaToSparkConnector;
 
     @Inject
     KafkaQueryExecutor kafkaQueryExecutor;
@@ -76,15 +78,15 @@ public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaCo
                 };
 
                 if (event.getTopicOffset() == OffsetConfig.EARLIEST || event.getTopicOffset() == OffsetConfig.LATEST) {
-                    kafkaConnector.initKafkaConsumer(topicName, event.getTopicOffset(), event.getNumberOfMessages(), () -> {
-                        topicListItemClickedEvent.topicConsumerStateChangedEvent.apply(TopicListItem.ButtonState.stopped);
-                        eventBus.post(new QueryExecutionFinishedEvent(topicName));
-                    });
+                    kafkaToSparkConnector.initKafkaConsumer(topicName,
+                            event.getTopicOffset(),
+                            event.getNumberOfMessages(),
+                            getConsumptionStateCallbackHandler(topicName, topicListItemClickedEvent));
                 } else {
-                    kafkaConnector.initKafkaConsumer(topicName, event.getTimeUntilNow(), event.getTimeUnit(), () -> {
-                        topicListItemClickedEvent.topicConsumerStateChangedEvent.apply(TopicListItem.ButtonState.stopped);
-                        eventBus.post(new QueryExecutionFinishedEvent(topicName));
-                    });
+                    kafkaToSparkConnector.initKafkaConsumer(topicName,
+                            event.getTimeUntilNow(),
+                            event.getTimeUnit(),
+                            getConsumptionStateCallbackHandler(topicName, topicListItemClickedEvent));
                 }
                 executeInitialQueryTask.execute();
                 return null;
@@ -101,4 +103,27 @@ public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaCo
         };
         initConsumerTask.execute();
     }
+
+
+    private KafkaConsumptionStateCallback getConsumptionStateCallbackHandler(final String topicName,
+                                                                             final TopicListItem.TopicListItemClickedEvent topicListItemClickedEvent) {
+        return new KafkaConsumptionStateCallback() {
+            @Override
+            public void messagesReceived(KafkaConsumptionState consumptionState) {
+            }
+
+            @Override
+            public void consumptionFinished() {
+                topicListItemClickedEvent.topicConsumerStateChangedEvent.apply(TopicListItem.ButtonState.stopped);
+                eventBus.post(new QueryExecutionFinishedEvent(topicName));
+            }
+
+            @Override
+            public void consumptionAborted() {
+                topicListItemClickedEvent.topicConsumerStateChangedEvent.apply(TopicListItem.ButtonState.stopped);
+                eventBus.post(new QueryExecutionFinishedEvent(topicName));
+            }
+        };
+    }
+
 }

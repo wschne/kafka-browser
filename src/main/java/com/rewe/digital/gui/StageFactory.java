@@ -35,13 +35,13 @@ public class StageFactory {
         if (previouslyCreatedStages.containsKey(sceneFile)) {
             return previouslyCreatedStages.get(sceneFile);
         } else {
-            Parent root = getParent(sceneFile);
+            val root = getParent(sceneFile);
 
-            Scene scene = new Scene(root);
+            val scene = new Scene(root);
             scene.getStylesheets().add(getClass().getClassLoader().getResource(sceneCssFile).toExternalForm());
             scene.setUserData(fxmlLoader);
 
-            Stage newWindow = new Stage();
+            val newWindow = new Stage();
             newWindow.setScene(scene);
             newWindow.setTitle(title);
 
@@ -52,6 +52,8 @@ public class StageFactory {
 
     public Parent getParent(String sceneFile) {
         final URL location = Objects.requireNonNull(getClass().getClassLoader().getResource(sceneFile));
+        fxmlLoader.setRoot(null);
+        fxmlLoader.setController(null);
         fxmlLoader.setLocation(location);
         Parent root = null;
         try {

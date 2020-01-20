@@ -12,5 +12,8 @@ import java.util.Map;
 public class ConsumerRecord<K,V> {
     private final K key;
     private final V value;
+    private final long timestamp;
+    private final long offset;
+    private final int partition;
     private Map<String, byte[]> header;
 }

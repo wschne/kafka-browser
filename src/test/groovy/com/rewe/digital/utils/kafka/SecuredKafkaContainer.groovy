@@ -2,6 +2,7 @@ package com.rewe.digital.utils.kafka
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.PartitionInfo
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -30,7 +31,7 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
                           sslPort = SSL_PORT,
                           saslSslPort = SASL_SSL_PORT,
                           String testTopics = 'test:1:1') {
-        super('wurstmeister/kafka:0.10.2.1');
+        super('wurstmeister/kafka:2.12-2.4.0');
 
         this.testTopics = testTopics.split(',')
         this.plaintextPort = plaintextPort;
@@ -78,7 +79,8 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
 
     public boolean isReady() {
         try {
-            this.running && getConsumer().listTopics().size() == testTopics.size()
+            def topics = getConsumer().listTopics()
+            this.running && topics.size() == testTopics.size()
         } catch (ConnectException) {
             return false
         }
@@ -93,6 +95,10 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
 
         this.consumer = new KafkaConsumer(properties)
         consumer
+    }
+
+    public String getBootstrapServers() {
+        return String.format("PLAINTEXT://%s:%s", proxy.getContainerIpAddress(), proxy.getFirstMappedPort());
     }
 
     @Override

@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rewe.digital.gui.controller.ConsumerConfigController">
+<AnchorPane prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rewe.digital.gui.controller.consumer.InitializeConsumerController">
     <children>
         <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <TitledPane fx:id="consumerSettingsPane" collapsible="false" text="Consumer settings">
@@ -30,8 +30,8 @@
                         </ColumnConstraints>
                     </columnConstraints>
 
-                    <Label text="Total messages on topic:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                    <TextField fx:id="textBoxNumberOfMessages" promptText="calculating..." prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="0" disable="true" text="0" />
+                    <Label text="Topic contains data:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="topicContainsDataField" promptText="calculating..." prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="0" disable="true" text="0" />
 
                     <Label text="Consume from offset" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                     <ComboBox fx:id="offsetSelection" prefHeight="30.0" GridPane.columnIndex="1" GridPane.rowIndex="1" onAction="#setVisibleInput">

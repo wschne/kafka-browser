@@ -1,9 +1,9 @@
-package com.rewe.digital.gui.controller;
+package com.rewe.digital.gui.controller.consumer;
 
 import com.rewe.digital.gui.handler.StartKafkaConsumerEventHandler;
 import com.rewe.digital.gui.topiclist.TopicListItem;
-import com.rewe.digital.kafka.KafkaConnector;
 import com.rewe.digital.kafka.OffsetConfig;
+import com.rewe.digital.kafka.topics.TopicsService;
 import com.rewe.digital.messaging.events.kafka.StartKafkaConsumerEvent;
 import com.victorlaerte.asynctask.AsyncTask;
 import javafx.application.Platform;
@@ -17,6 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
+import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,7 +27,7 @@ import java.time.temporal.TemporalUnit;
 import java.util.ResourceBundle;
 
 @Named
-public class ConsumerConfigController implements Initializable {
+public class InitializeConsumerController implements Initializable {
     @FXML
     Label consumeMessagesInfo;
     @FXML
@@ -36,7 +37,7 @@ public class ConsumerConfigController implements Initializable {
     @FXML
     TitledPane consumerSettingsPane;
     @FXML
-    TextField textBoxNumberOfMessages;
+    TextField topicContainsDataField;
     @FXML
     Button buttonCloseWindow;
     @FXML
@@ -47,7 +48,7 @@ public class ConsumerConfigController implements Initializable {
     TextField textBoxAmountOfMessagesToConsume;
 
     @Inject
-    private KafkaConnector kafkaConnector;
+    private TopicsService topicsService;
 
     @Inject
     private StartKafkaConsumerEventHandler startKafkaConsumerEventHandler;
@@ -60,27 +61,27 @@ public class ConsumerConfigController implements Initializable {
 
     public void initConfigUi(TopicListItem.TopicListItemClickedEvent topicListItemClickedEvent) {
         this.topicListItemClickedEvent = topicListItemClickedEvent;
+        val topicName = topicListItemClickedEvent.topicName;
         Platform.runLater(() -> {
-            consumerSettingsPane.setText("Consumer config [" + topicListItemClickedEvent.topicName + "]");
+            consumerSettingsPane.setText("Consumer config [" + topicName + "]");
         });
 
-        AsyncTask fetchTopicSize = new AsyncTask<Object, Object, Long>() {
+        val fetchTopicSize = new AsyncTask<Object, Object, Boolean>() {
             @Override
             public void onPreExecute() {
-                Platform.runLater(() -> { textBoxNumberOfMessages.setText("calculating..."); });
+                Platform.runLater(() -> { topicContainsDataField.setText("calculating..."); });
             }
 
             @Override
-            public Long doInBackground(Object[] params) {
-                return kafkaConnector.getTopicSize((String)params[0]);
+            public Boolean doInBackground(Object[] params) {
+                return topicsService.isTopicContainsData(topicName);
             }
 
             @Override
-            public void onPostExecute(Long messageCount) {
+            public void onPostExecute(Boolean topicContainsData) {
                 Platform.runLater(() -> {
-                    textBoxNumberOfMessages.setText(String.valueOf(messageCount));
-
-                    if (messageCount > 0) {
+                    topicContainsDataField.setText(Boolean.toString(topicContainsData));
+                    if (topicContainsData) {
                         buttonStartConsumer.setDisable(false);
                         buttonStartConsumer.setText("Start consumer");
                     } else {
@@ -94,7 +95,7 @@ public class ConsumerConfigController implements Initializable {
             public void progressCallback(Object[] params) { }
         };
 
-        fetchTopicSize.execute(topicListItemClickedEvent.topicName);
+        fetchTopicSize.execute(topicName);
     }
 
     public void closeWindow(ActionEvent actionEvent) {

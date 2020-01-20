@@ -6,6 +6,8 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.KafkaContainer
+import spock.lang.Shared
 import spock.util.concurrent.PollingConditions
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG
@@ -34,15 +36,15 @@ trait KafkaTestSetup {
         firstZookeeper.start()
         firstKafkaContainer.start()
 
-        def secondZookeeper = setupZookeeper(secondKafkaContainer, "2281")
-        secondZookeeper.start()
-        secondKafkaContainer.start()
+//        def secondZookeeper = setupZookeeper(secondKafkaContainer, "2281")
+//        secondZookeeper.start()
+//        secondKafkaContainer.start()
 
         conditions.within(10) {
             firstKafkaContainer.isReady() &&
             secondKafkaContainer.isReady()
-            System.out.println("Kafka container started")
         }
+        System.out.println("Kafka container started")
     }
 
     private static GenericContainer setupZookeeper(SecuredKafkaContainer kafkaContainer, String zooKeeperPort) {
@@ -69,14 +71,17 @@ trait KafkaTestSetup {
     }
 
     static void withKafkaMessages(String topic, int numberOfMessages) {
+        def producer = getProducer()
+        println producer.properties
         (1..numberOfMessages).each { int i ->
-            getProducer().send(new ProducerRecord<String, String>(topic, "${i}_key" as String, "${i}_value" as String))
+            producer.send(new ProducerRecord<String, String>(topic, "${i}_key" as String, "${i}_value" as String))
         }
     }
 
     static List<LinkedHashMap<String, String>> withKafkaMessages(String topic, List<LinkedHashMap<String, String>> messages) {
+        def producer = getProducer()
         messages.each {
-            getProducer().send(new ProducerRecord<String, String>(topic, it.key, it.value))
+            producer.send(new ProducerRecord<String, String>(topic, it.key, it.value))
         }
     }
 

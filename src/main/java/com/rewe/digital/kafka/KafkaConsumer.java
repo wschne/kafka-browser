@@ -6,11 +6,17 @@ import com.rewe.digital.kafka.consumer.KafkaConsumptionStateCallback;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.common.TopicPartition;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.time.Instant;
+import java.time.temporal.TemporalUnit;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -27,10 +33,30 @@ public class KafkaConsumer {
     }
 
     public Runnable startConsumer(final String topic,
+                                  final int timeUntilNow,
+                                  final TemporalUnit timeUnit,
+                                  final KafkaConsumptionStateCallback consumptionStateCallback) {
+        val consumer = kafkaConsumerFactory.get();
+
+        if(!topicExistsAndContainsData(topic, consumer)) {
+            log.warn("Topic {} either not exists, or is empty.", topic);
+            consumptionStateCallback.consumptionAborted();
+            return () -> {};
+        }
+
+        val partitions = assignTopic(topic, consumer);
+        setOffsetByTime(consumer, partitions, timeUntilNow, timeUnit);
+
+        return startConsumer(topic,
+                Integer.MAX_VALUE,
+                consumptionStateCallback,
+                consumer);
+    }
+
+    public Runnable startConsumer(final String topic,
                                   final OffsetConfig offsetConfig,
                                   final Integer totalMessagesWanted,
                                   final KafkaConsumptionStateCallback consumptionStateCallback) {
-        final boolean[] shouldConsume = {true};
         val consumer = kafkaConsumerFactory.get();
 
         if(!topicExistsAndContainsData(topic, consumer)) {
@@ -47,6 +73,14 @@ public class KafkaConsumer {
             rewindConsumerOffset(consumer, partitions);
         }
 
+        return startConsumer(topic, totalMessagesWanted, consumptionStateCallback, consumer);
+    }
+
+    private Runnable startConsumer(final String topic,
+                                   final Integer totalMessagesWanted,
+                                   final KafkaConsumptionStateCallback consumptionStateCallback,
+                                   final org.apache.kafka.clients.consumer.KafkaConsumer<String, String> consumer) {
+        final boolean[] shouldConsume = {true};
         Runnable stopCallback = () -> shouldConsume[0] = false;
 
         Runnable task = () -> {
@@ -87,7 +121,7 @@ public class KafkaConsumer {
                                            final int totalConsumedMessages,
                                            final ConsumerRecords<String, String> records) {
         val recordsCollected = StreamSupport.stream(records.spliterator(), false)
-                .map(r -> new ConsumerRecord(r.key(), r.value()))
+                .map(r -> new ConsumerRecord(r.key(), r.value(), r.timestamp(), r.offset(), r.partition()))
                 .collect(Collectors.toList());
         consumptionStateCallback.messagesReceived(new KafkaConsumptionState(totalMessagesWanted,
                 totalConsumedMessages,
@@ -143,6 +177,33 @@ public class KafkaConsumer {
                         kafkaConsumer.seek(topicPartition, offset);
                     }
                 });
+    }
+
+    private void setOffsetByTime(final org.apache.kafka.clients.consumer.KafkaConsumer<String, String> topicConsumer,
+                                 final List<TopicPartition> partitions,
+                                 final int timeUntilNow,
+                                 final TemporalUnit timeUnit) {
+        Map<TopicPartition, OffsetAndTimestamp> result = getOffsetsByTime(topicConsumer, partitions, timeUntilNow, timeUnit);
+
+        result.entrySet().forEach(entry -> {
+            final List<TopicPartition> ts = Collections.singletonList(entry.getKey());
+            final Long fallbackOffset = topicConsumer.endOffsets(ts).get(entry.getKey());
+            topicConsumer.seek(entry.getKey(), entry.getValue() != null ? entry.getValue().offset() : fallbackOffset);
+        });
+    }
+
+    private Map<TopicPartition, OffsetAndTimestamp> getOffsetsByTime(final org.apache.kafka.clients.consumer.KafkaConsumer<String, String> topicConsumer,
+                                                                     final List<TopicPartition> partitions,
+                                                                     final int timeUntilNow,
+                                                                     final TemporalUnit timeUnit) {
+        Map<TopicPartition, Long> offsetReset = new HashMap<>();
+
+        partitions.forEach((TopicPartition partition) -> {
+            val timePeriod = Instant.now().minus(timeUntilNow, timeUnit).toEpochMilli();
+            offsetReset.put(partition, timePeriod);
+        });
+
+        return topicConsumer.offsetsForTimes(offsetReset);
     }
 
     private int getNumberOfWantedMessagesPerPartition(Integer totalMessagesWanted, List<TopicPartition> partitions) {
