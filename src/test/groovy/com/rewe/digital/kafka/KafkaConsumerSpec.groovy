@@ -117,7 +117,7 @@ class KafkaConsumerSpec extends Specification implements KafkaTestSetup {
     boolean containsMessages(List<Map> expectedMessages, List<ConsumerRecord> actualMessages) {
         expectedMessages.every { m ->
             if (actualMessages) {
-                def contains = actualMessages.contains(new ConsumerRecord(m.key, m.value))
+                def contains = actualMessages.any {a -> a.key == m.key && a.value == m.value}
                 if (!contains) System.out.println("Message is not part of received messages: " + m)
                 return contains
             } else {

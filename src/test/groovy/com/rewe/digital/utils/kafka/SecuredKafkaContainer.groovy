@@ -2,7 +2,6 @@ package com.rewe.digital.utils.kafka
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.PartitionInfo
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -13,7 +12,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS
 
 class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
     public static final int ZOOKEEPER_PORT = 2181;
-    public static final int PLAINTEXT_PORT = 9092
+    public static final int PLAINTEXT_PORT = 9091
     public static final int SSL_PORT = 9093
     public static final int SASL_SSL_PORT = 9193
 
@@ -50,15 +49,15 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
         this.withEnv('KAFKA_SSL_KEY_PASSWORD', "nodesinek")
         this.withEnv('KAFKA_SSL_TRUSTSTORE_PASSWORD', "nodesinek")
         this.withEnv('KAFKA_SSL_CLIENT_AUTH', "required")
-        this.withEnv('KAFKA_SECURITY_INTER_BROKER_PROTOCOL', "SASL_SSL")
         this.withEnv('KAFKA_PORT', plaintextPort as String)
         this.withEnv('KAFKA_CREATE_TOPICS', testTopics as String)
         this.withEnv('KAFKA_AUTO_CREATE_TOPICS_ENABLE', "true")
         this.withEnv('KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL', "PLAIN")
         this.withEnv('KAFKA_SASL_ENABLED_MECHANISMS', "PLAIN")
         this.withEnv('KAFKA_JMX_OPTS', "-Djava.security.auth.login.config=/etc/kafka/server-jaas.conf")
-        this.withEnv('KAFKA_LISTENERS', "PLAINTEXT://:${plaintextPort},SSL://:${sslPort},SASL_SSL://:${saslSslPort}")
-        this.withEnv('KAFKA_ADVERTISED_LISTENERS', "PLAINTEXT://localhost:${plaintextPort},SSL://localhost:${sslPort},SASL_SSL://localhost:${saslSslPort}")
+        withEnv("KAFKA_LISTENER_SECURITY_PROTOCOL_MAP", "BROKER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_SSL:SASL_SSL");
+        withEnv("KAFKA_INTER_BROKER_LISTENER_NAME", "BROKER");
+        this.withEnv('KAFKA_LISTENERS', "PLAINTEXT://0.0.0.0:${plaintextPort},SSL://0.0.0.0:${sslPort},SASL_SSL://0.0.0.0:${saslSslPort},BROKER://0.0.0.0:9092")
         this.withEnv('KAFKA_ZOOKEEPER_CONNECT', "zookeeper:${zookeeperPort}")
 
         this.withClasspathResourceMapping('kafka_server_conf/certs', '/certs', BindMode.READ_ONLY)
@@ -67,13 +66,19 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
 
     public String getSaslSslBootstrapServers() {
         def address = proxy.getContainerIpAddress()
-        def plaintextPort = this.getMappedPort(this.saslSslPort)
+        def plaintextPort = proxy.getMappedPort(this.saslSslPort)
+        return "${address}:${plaintextPort}"
+    }
+
+    public String getSslBootstrapServers() {
+        def address = proxy.getContainerIpAddress()
+        def plaintextPort = proxy.getMappedPort(sslPort)
         return "${address}:${plaintextPort}"
     }
 
     public String getPlaintextBootstrapServers() {
         def address = proxy.getContainerIpAddress()
-        def plaintextPort = this.getMappedPort(this.plaintextPort)
+        def plaintextPort = proxy.getFirstMappedPort()
         return "${address}:${plaintextPort}"
     }
 
@@ -97,10 +102,6 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
         consumer
     }
 
-    public String getBootstrapServers() {
-        return String.format("PLAINTEXT://%s:%s", proxy.getContainerIpAddress(), proxy.getFirstMappedPort());
-    }
-
     @Override
     protected void doStart() {
         String networkAlias = getNetworkAliases().get(0);
@@ -112,6 +113,7 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
                 .withTarget(this.zookeeperPort, networkAlias);
 
         proxy.start();
+        withEnv("KAFKA_ADVERTISED_LISTENERS", "BROKER://" + networkAlias + ":9092" + "," + "PLAINTEXT://${getPlaintextBootstrapServers()},SSL://${getSslBootstrapServers()},SASL_SSL://${getSaslSslBootstrapServers()}");
 
         super.doStart();
     }

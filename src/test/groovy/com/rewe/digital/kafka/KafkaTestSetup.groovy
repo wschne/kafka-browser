@@ -20,11 +20,7 @@ trait KafkaTestSetup {
 
     private static KafkaProducer kafkaProducer
 
-    static SecuredKafkaContainer firstKafkaContainer = new SecuredKafkaContainer(9092,
-            2181,
-            9093,
-            9193,
-            'test_kafka_topic_1:1:1,test_kafka_topic_2:1:1,test_kafka_topic_3:1:1,empty:1:1')
+    static SecuredKafkaContainer firstKafkaContainer = new SecuredKafkaContainer()
     static SecuredKafkaContainer secondKafkaContainer = new SecuredKafkaContainer(9192,
             2281,
             9193,
@@ -36,9 +32,9 @@ trait KafkaTestSetup {
         firstZookeeper.start()
         firstKafkaContainer.start()
 
-//        def secondZookeeper = setupZookeeper(secondKafkaContainer, "2281")
-//        secondZookeeper.start()
-//        secondKafkaContainer.start()
+        def secondZookeeper = setupZookeeper(secondKafkaContainer, "2281")
+        secondZookeeper.start()
+        secondKafkaContainer.start()
 
         conditions.within(10) {
             firstKafkaContainer.isReady() &&

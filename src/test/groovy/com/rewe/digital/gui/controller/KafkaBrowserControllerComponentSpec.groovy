@@ -16,8 +16,8 @@ class KafkaBrowserControllerComponentSpec extends AbstractApplicationSpec {
     def "Connect to a cluster and show the list of topics"() {
         given:
         def topicsService = Mock(TopicsService)
-        def firstTopicList = [new Topic('a', [:]),new Topic('b', [:]),new Topic('c', [:])]
-        def secondTopicList = [new Topic('d', [:]), new Topic('e', [:]), new Topic('f', [:]), new Topic('g', [:])]
+        def firstTopicList = [new Topic('a'),new Topic('b'),new Topic('c')]
+        def secondTopicList = [new Topic('d'), new Topic('e'), new Topic('f'), new Topic('g')]
 
         and:
         topicsService.topics() >>> [firstTopicList, secondTopicList]

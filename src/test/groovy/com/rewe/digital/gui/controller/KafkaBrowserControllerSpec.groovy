@@ -19,9 +19,9 @@ class KafkaBrowserControllerSpec extends AbstractApplicationSpec {
     @Unroll
     def "Filter topics list based on user input #searchInput"() {
         given:
-        topicsService.topics() >> [new Topic('topic_a', [:]),
-                                   new Topic('topic_b', [:]),
-                                   new Topic('topic_ac', [:])]
+        topicsService.topics() >> [new Topic('topic_a'),
+                                   new Topic('topic_b'),
+                                   new Topic('topic_ac')]
 
         and:
         FxToolkit.setupStage({
