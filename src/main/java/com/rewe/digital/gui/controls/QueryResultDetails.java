@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Named
 public class QueryResultDetails extends AnchorPane {
@@ -54,7 +55,16 @@ public class QueryResultDetails extends AnchorPane {
     }
 
     public void showSearchResult(final List<Map> result,
-                                 final String topic) {
+                                 final String topic,
+                                 final boolean append) {
+
+        if (append) {
+            final Stream stream = currentSearchResult.getItems().stream();
+            final Stream<Map> stream1 = stream.map(Map.class::cast);
+            List<Map> collect = stream1.collect(Collectors.toList());
+            result.addAll(collect);
+        }
+
         addTableColumns(currentSearchResult, result);
 
         currentSearchResult.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedMessage) -> {
@@ -88,6 +98,15 @@ public class QueryResultDetails extends AnchorPane {
         val sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(currentSearchResult.comparatorProperty());
         currentSearchResult.setItems(sortedData);
+    }
+
+    public void resetView() {
+        val emptyList = FXCollections.observableArrayList();
+        currentSearchResult.setItems(emptyList);
+
+        filterSearchResultInput.clear();
+        getVboxContainer().getChildren().remove(messageDetailsPane);
+        messageDetailsPane = null;
     }
 
     private void addTableColumns(final TableView tableToAddColumnsto, final List<Map> tableData) {

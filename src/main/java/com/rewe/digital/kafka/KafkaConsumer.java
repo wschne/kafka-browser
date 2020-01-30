@@ -38,12 +38,6 @@ public class KafkaConsumer {
                                   final KafkaConsumptionStateCallback consumptionStateCallback) {
         val consumer = kafkaConsumerFactory.get();
 
-        if(!topicExistsAndContainsData(topic, consumer)) {
-            log.warn("Topic {} either not exists, or is empty.", topic);
-            consumptionStateCallback.consumptionAborted();
-            return () -> {};
-        }
-
         val partitions = assignTopic(topic, consumer);
         setOffsetByTime(consumer, partitions, timeUntilNow, timeUnit);
 
@@ -58,12 +52,6 @@ public class KafkaConsumer {
                                   final Integer totalMessagesWanted,
                                   final KafkaConsumptionStateCallback consumptionStateCallback) {
         val consumer = kafkaConsumerFactory.get();
-
-        if(!topicExistsAndContainsData(topic, consumer)) {
-            log.warn("Topic {} either not exists, or is empty.", topic);
-            consumptionStateCallback.consumptionAborted();
-            return () -> {};
-        }
 
         if (offsetConfig == OffsetConfig.LATEST) {
             val partitions = assignTopic(topic, consumer);
@@ -89,7 +77,7 @@ public class KafkaConsumer {
             while (totalConsumedMessages < totalMessagesWanted &&
                     retryCountOnEmptyPoll > 0 &&
                     shouldConsume[0]) {
-                val records = consumer.poll(ofSeconds(2));
+                val records = consumer.poll(ofSeconds(5));
                 totalConsumedMessages += records.count();
                 log.info("Received from topic {} {} messages", topic, totalConsumedMessages);
                 if (records.isEmpty()) {
@@ -126,28 +114,6 @@ public class KafkaConsumer {
         consumptionStateCallback.messagesReceived(new KafkaConsumptionState(totalMessagesWanted,
                 totalConsumedMessages,
                 recordsCollected));
-    }
-
-    private boolean topicExistsAndContainsData(final String topic,
-                                               final org.apache.kafka.clients.consumer.KafkaConsumer<String, String> kafkaConsumer) {
-        val topics = kafkaConsumer.listTopics();
-        if(topics.containsKey(topic)) {
-            try {
-                val partitionInfos = topics.get(topic)
-                        .stream()
-                        .map(partitionInfo -> new TopicPartition(topic, partitionInfo.partition()))
-                        .collect(Collectors.toList());
-                return kafkaConsumer.endOffsets(partitionInfos, ofSeconds(2))
-                        .values()
-                        .stream()
-                        .anyMatch(offset -> offset > 0);
-            } catch (org.apache.kafka.common.errors.TimeoutException e) {
-                log.error("Timeout while fetching offsets of topic {}", topic);
-                return false;
-            }
-        } else {
-            return false;
-        }
     }
 
     private List<TopicPartition> assignTopic(final String topic,

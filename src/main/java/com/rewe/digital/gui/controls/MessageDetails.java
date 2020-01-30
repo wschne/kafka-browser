@@ -68,7 +68,7 @@ public class MessageDetails extends AnchorPane {
                     } else if (message instanceof byte[]) {
                         val messageAsArray = (byte[]) message;
                         messageViewAsText.setText(Arrays.toString(messageAsArray));
-                    } else {
+                    } else if (message != null) {
                         messageViewAsText.setText(message.toString());
                     }
 
@@ -104,15 +104,17 @@ public class MessageDetails extends AnchorPane {
 
         Object value = entry.getValue();
 
-        if (value instanceof Map) {
-            Map<String, Object> vMap = (Map<String, Object>) value;
+        if (value != null) {
+            if (value instanceof Map) {
+                Map<String, Object> vMap = (Map<String, Object>) value;
 
-            // recursive creation of subtrees for map entries
-            for (Map.Entry<String, Object> e : vMap.entrySet()) {
-                result.getChildren().add(createTree(vMap, e));
+                // recursive creation of subtrees for map entries
+                for (Map.Entry<String, Object> e : vMap.entrySet()) {
+                    result.getChildren().add(createTree(vMap, e));
+                }
+            } else {
+                result.getChildren().add(new TreeItem<>(new MapItem(null, value.toString())));
             }
-        } else {
-            result.getChildren().add(new TreeItem<>(new MapItem(null, value.toString())));
         }
 
         return result;

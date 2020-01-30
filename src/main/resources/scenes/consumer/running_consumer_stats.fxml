@@ -35,15 +35,16 @@
 
                 <rowConstraints>
                     <RowConstraints/>
-                    <RowConstraints/>
                 </rowConstraints>
             </GridPane>
         </TitledPane>
-        <ProgressBar progress="0.0" VBox.vgrow="ALWAYS" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <padding>
-            <Insets left="5.0" right="5.0"/>
-        </padding>
+        <ProgressBar fx:id="consumptionProcessBar" progress="0.0" AnchorPane.bottomAnchor="0.0"
+                     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                     prefWidth="Infinity"
+                     VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets left="5.0" right="5.0"/>
+            </padding>
         </ProgressBar>
         <HBox alignment="BASELINE_CENTER" spacing="5">
             <Button fx:id="buttonCloseWindow" onAction="#closeWindow" prefWidth="100" text="Cancel"/>

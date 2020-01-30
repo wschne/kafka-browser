@@ -4,6 +4,9 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
 import com.rewe.digital.gui.controls.QueryResultDetails;
+import com.rewe.digital.kafka.ConsumerRecordTransformer;
+import com.rewe.digital.messaging.events.kafka.KafkaConsumptionStateEvent;
+import com.rewe.digital.messaging.events.kafka.StartKafkaConsumerEvent;
 import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryResultEvent;
 import com.rewe.digital.messaging.events.querying.ShowQueryingErrorEvent;
@@ -12,7 +15,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import lombok.val;
 
@@ -45,6 +47,15 @@ public class QueryResultsController implements Initializable {
     }
 
     @Subscribe
+    private void cleanupResultsTable(final StartKafkaConsumerEvent startKafkaConsumerEvent) {
+        val currentTab = getCurrentSearchResultTab();
+        currentTab.ifPresent((t) -> {
+            QueryResultDetails resultDetails = (QueryResultDetails) currentTab.get().getContent();
+            resultDetails.resetView();
+        });
+    }
+
+    @Subscribe
     private void showQueryErrorResult(final ShowQueryingErrorEvent queryingErrorEvent) {
         val searchError = new TextArea(queryingErrorEvent.getErrorMessage());
         val errorTab = new Tab("Error", searchError);
@@ -64,31 +75,44 @@ public class QueryResultsController implements Initializable {
         val tabTitle = topicName + " (" + result.size() + ")";
 
         if (resultTarget == ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW) {
-            Platform.runLater( () -> updateOrCreateCurrentSearchResultTab(tabTitle, topicName, result) );
+            Platform.runLater(() -> updateOrCreateCurrentSearchResultTab(tabTitle, topicName, result, false));
         } else {
-            Platform.runLater( () -> createAndAppendNewTab(tabTitle, topicName, result) );
+            Platform.runLater(() -> createAndAppendNewTab(tabTitle, topicName, result, false));
         }
+    }
+
+    @Subscribe
+    private void showIncomingData(final KafkaConsumptionStateEvent consumptionStateEvent) {
+        ConsumerRecordTransformer consumerRecordTransformer = injector.getInstance(ConsumerRecordTransformer.class);
+
+        val topicName = consumptionStateEvent.getTopicName();
+        val tabTitle = topicName + " (" + consumptionStateEvent.getTotalConsumedMessages() + ")";
+        val messagesMap = consumerRecordTransformer.toMap(consumptionStateEvent.getCurrentBatchOfMessages());
+
+        Platform.runLater(() -> updateOrCreateCurrentSearchResultTab(tabTitle, topicName, messagesMap, true));
     }
 
     private void updateOrCreateCurrentSearchResultTab(final String title,
                                                       final String topicName,
-                                                      final List<Map> messageDetails) {
+                                                      final List<Map> messageDetails,
+                                                      final boolean append) {
         val currentTab = getCurrentSearchResultTab();
 
-        if(!currentTab.isPresent()) {
-            createAndAppendNewTab(title, topicName, messageDetails);
+        if (!currentTab.isPresent()) {
+            createAndAppendNewTab(title, topicName, messageDetails, append);
         } else {
             QueryResultDetails resultDetails = (QueryResultDetails) currentTab.get().getContent();
             currentTab.get().setText(title);
-            resultDetails.showSearchResult(messageDetails, topicName);
+            resultDetails.showSearchResult(messageDetails, topicName, append);
         }
     }
 
     private Tab createAndAppendNewTab(final String title,
                                       final String topicName,
-                                      final List<Map> messageDetails) {
+                                      final List<Map> messageDetails,
+                                      final boolean append) {
         val content = injector.getInstance(QueryResultDetails.class);
-        content.showSearchResult(messageDetails, topicName);
+        content.showSearchResult(messageDetails, topicName, append);
         final Tab tab = new Tab(title, content);
         tab.setClosable(true);
         searchResultTabPane.getTabs().add(tab);

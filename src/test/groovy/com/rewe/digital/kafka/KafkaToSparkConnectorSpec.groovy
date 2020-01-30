@@ -27,7 +27,7 @@ class KafkaToSparkConnectorSpec extends Specification {
 
     def kafkaConsumer = Mock(KafkaConsumer)
 
-    def kafkaConnector = new KafkaToSparkConnector(sparkSession, kafkaConsumer)
+    def kafkaConnector = new KafkaToSparkConnector(sparkSession, kafkaConsumer, consumerRecordTransformer)
 
     def cleanupSpec() {
         sparkSession.stop()
@@ -105,7 +105,7 @@ class KafkaToSparkConnectorSpec extends Specification {
     private ConsumerRecord sampleMessage(index = 1) {
         def key = UUID.randomUUID()
         new ConsumerRecord(key as String,
-                "val_$index" as String,
+                """{"index": $index, "a_property": "some value"}""" as String,
                 Instant.now().toEpochMilli(),
                 1,
                 1,

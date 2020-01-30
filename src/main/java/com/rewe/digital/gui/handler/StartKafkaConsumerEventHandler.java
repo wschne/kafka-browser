@@ -3,25 +3,19 @@ package com.rewe.digital.gui.handler;
 import com.google.common.eventbus.EventBus;
 import com.rewe.digital.gui.topiclist.TopicListItem;
 import com.rewe.digital.kafka.KafkaToSparkConnector;
-import com.rewe.digital.kafka.KafkaQueryExecutor;
 import com.rewe.digital.kafka.OffsetConfig;
 import com.rewe.digital.kafka.consumer.KafkaConsumptionState;
 import com.rewe.digital.kafka.consumer.KafkaConsumptionStateCallback;
-import com.rewe.digital.messaging.events.TopicEmptyEvent;
 import com.rewe.digital.messaging.events.WaitForKafkaMessagesEvent;
+import com.rewe.digital.messaging.events.kafka.KafkaConsumptionStateEvent;
 import com.rewe.digital.messaging.events.kafka.StartKafkaConsumerEvent;
-import com.rewe.digital.messaging.events.querying.ExecuteQueryEvent;
 import com.rewe.digital.messaging.events.querying.QueryExecutionFinishedEvent;
 import com.rewe.digital.model.Query;
 import com.victorlaerte.asynctask.AsyncTask;
 import javafx.event.EventHandler;
-import org.awaitility.core.ConditionTimeoutException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import static org.awaitility.Awaitility.await;
-import static org.awaitility.Duration.ONE_MINUTE;
 
 @Named
 public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaConsumerEvent> {
@@ -29,13 +23,12 @@ public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaCo
     private KafkaToSparkConnector kafkaToSparkConnector;
 
     @Inject
-    KafkaQueryExecutor kafkaQueryExecutor;
-
-    @Inject
     private EventBus eventBus;
 
     @Override
     public void handle(StartKafkaConsumerEvent event) {
+        eventBus.post(event);
+
         final TopicListItem.TopicListItemClickedEvent topicListItemClickedEvent = event.getTopicListItemClickedEvent();
         final String topicName = topicListItemClickedEvent.topicName;
         AsyncTask initConsumerTask = new AsyncTask() {
@@ -56,13 +49,6 @@ public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaCo
                     public Object doInBackground(Object[] params) {
                         final Query query = new Query("select * from " + topicName);
                         eventBus.post(new WaitForKafkaMessagesEvent(query));
-                        try {
-                            await().atMost(ONE_MINUTE)
-                                    .until(() -> kafkaQueryExecutor.getTopicTableStatus(topicName).getRecordCountInStore() > 0);
-                            eventBus.post(new ExecuteQueryEvent(query, ExecuteQueryEvent.ResultTarget.CURRENT_WINDOW));
-                        } catch (ConditionTimeoutException e) {
-                            eventBus.post(new TopicEmptyEvent(topicName));
-                        }
                         return null;
                     }
 
@@ -110,6 +96,11 @@ public class StartKafkaConsumerEventHandler implements EventHandler<StartKafkaCo
         return new KafkaConsumptionStateCallback() {
             @Override
             public void messagesReceived(KafkaConsumptionState consumptionState) {
+                eventBus.post(new KafkaConsumptionStateEvent(topicName,
+                        consumptionState.getTotalWantedMessages(),
+                        consumptionState.getTotalConsumedMessages(),
+                        false,
+                        consumptionState.getCurrentBatchOfMessages()));
             }
 
             @Override

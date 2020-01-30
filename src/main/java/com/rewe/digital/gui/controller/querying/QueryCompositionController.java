@@ -137,7 +137,6 @@ public class QueryCompositionController implements Initializable {
 
     @Subscribe
     public void handleQueryExecutionFinishedEvent(final QueryExecutionFinishedEvent queryExecutionFinishedEvent) {
-        final String topicName = queryExecutionFinishedEvent.getTopicName();
         Platform.runLater(() -> {
             labelWaitForData.setVisible(false);
             executeButton.setDisable(false);
