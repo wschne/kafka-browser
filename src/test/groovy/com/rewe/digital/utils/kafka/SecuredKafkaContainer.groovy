@@ -29,7 +29,7 @@ class SecuredKafkaContainer extends GenericContainer<SecuredKafkaContainer> {
                           zookeeperPort = ZOOKEEPER_PORT,
                           sslPort = SSL_PORT,
                           saslSslPort = SASL_SSL_PORT,
-                          String testTopics = 'test:1:1') {
+                          String testTopics = 'test:1:1,non_empty_topic:1:1') {
         super('wurstmeister/kafka:2.12-2.4.0');
 
         this.testTopics = testTopics.split(',')

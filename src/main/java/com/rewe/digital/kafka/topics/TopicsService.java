@@ -58,7 +58,7 @@ public class TopicsService {
         try {
             long current = kafkaConsumer.position(topicPartition, of(2, ChronoUnit.SECONDS));
             kafkaConsumer.seek(topicPartition, getOffset(current));
-            return !kafkaConsumer.poll(ofMillis(2000)).isEmpty();
+            return !kafkaConsumer.poll(ofMillis(500)).isEmpty();
         } catch (final KafkaException e) {
             return true;
         }

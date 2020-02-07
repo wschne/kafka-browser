@@ -26,11 +26,10 @@ class TopicsServiceSpec extends Specification implements KafkaTestSetup {
 
     @Unroll
     def "Check if topic #topicName contains data: #expectToContainData"() {
-        when:
-        def isTopicConainsData = topicsService.isTopicContainsData(topicName)
-
-        then:
-        isTopicConainsData == expectToContainData
+        expect:
+        conditions.eventually {
+            topicsService.isTopicContainsData(topicName) == expectToContainData
+        }
 
         where:
         topicName         | expectToContainData

@@ -49,7 +49,7 @@ class KafkaToSparkConnectorSpec extends Specification {
         kafkaConnector.initKafkaConsumer(topic, offsetType, totalMessagesWanted, consumptionStateCallback)
 
         then:
-        1 * consumerRecordTransformer.toJson(consumedMessages.currentBatchOfMessages) >> jsonMessages
+        1 * consumerRecordTransformer.toJson(_) >> jsonMessages
         1 * kafkaConsumer.startConsumer(topic,
                 offsetType,
                 totalMessagesWanted,
