@@ -36,7 +36,7 @@ class KafkaConsumerSpec extends Specification implements KafkaTestSetup {
                 callbackFn)
 
         then:
-        conditions.within(5, {
+        conditions.within(15, {
             assert kafkaConsumptionStateEvent?.totalWantedMessages == wantedMessages
             assert kafkaConsumptionStateEvent?.totalConsumedMessages >= wantedMessages
             assert isConsumerFinished
