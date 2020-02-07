@@ -34,7 +34,7 @@ class KafkaToSparkConnectorSpec extends Specification {
         sparkSession.stop()
     }
 
-    def "Consume some messages and add them into kafka-context"() {
+    def "Consume some messages and add them into spark-context"() {
         given:
         def topic = 'sample_topic'
         def offsetType = OffsetConfig.EARLIEST
@@ -49,12 +49,14 @@ class KafkaToSparkConnectorSpec extends Specification {
         kafkaConnector.initKafkaConsumer(topic, offsetType, totalMessagesWanted, consumptionStateCallback)
 
         then:
-        1 * consumerRecordTransformer.toJson(_) >> jsonMessages
-        1 * kafkaConsumer.startConsumer(topic,
-                offsetType,
-                totalMessagesWanted,
-                { KafkaConsumptionStateCallback c ->
-                    c.messagesReceived(consumedMessages); true })
+        conditions.eventually {
+            1 * kafkaConsumer.startConsumer(topic,
+                    offsetType,
+                    totalMessagesWanted,
+                    { KafkaConsumptionStateCallback c ->
+                        c.messagesReceived(consumedMessages); true })
+            1 * consumerRecordTransformer.toJson(_) >> jsonMessages
+        }
 
         and:
         conditions.within(10, {
