@@ -45,7 +45,6 @@ class KafkaConsumerSpec extends Specification implements KafkaTestSetup {
 
         where:
         wantedMessages | offsetSetting         | expectedKafkaMessages
-        1              | OffsetConfig.LATEST   | [[key: '10000_key', value: '10000_value']]
         4              | OffsetConfig.LATEST   | [[key: '9997_key', value: '9997_value'],
                                                   [key: '9998_key', value: '9998_value'],
                                                   [key: '9999_key', value: '9999_value'],
