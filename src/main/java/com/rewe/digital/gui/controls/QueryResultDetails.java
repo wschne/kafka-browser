@@ -58,11 +58,12 @@ public class QueryResultDetails extends AnchorPane {
                                  final String topic,
                                  final boolean append) {
 
+        val observableResult = FXCollections.observableArrayList(result);
         if (append) {
             final Stream stream = currentSearchResult.getItems().stream();
             final Stream<Map> stream1 = stream.map(Map.class::cast);
             List<Map> collect = stream1.collect(Collectors.toList());
-            result.addAll(collect);
+            observableResult.addAll(collect);
         }
 
         addTableColumns(currentSearchResult, result);
@@ -71,7 +72,6 @@ public class QueryResultDetails extends AnchorPane {
             getMessageDetails().showMessageDetails(topic, selectedMessage);
         });
 
-        val observableResult = FXCollections.observableArrayList(result);
         val filteredData = new FilteredList<>(observableResult, p -> true);
 
         filterSearchResultInput.textProperty().addListener((observable, oldValue, newValue) -> {

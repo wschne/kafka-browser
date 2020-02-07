@@ -26,6 +26,7 @@ class KafkaToSparkConnectorSpec extends Specification {
             .getOrCreate();
 
     def kafkaConsumer = Mock(KafkaConsumer)
+    def consumerRecordTransformer = Mock(ConsumerRecordTransformer)
 
     def kafkaConnector = new KafkaToSparkConnector(sparkSession, kafkaConsumer, consumerRecordTransformer)
 
@@ -40,17 +41,23 @@ class KafkaToSparkConnectorSpec extends Specification {
         def totalMessagesWanted = 200
         def totalMessagesReceived = 150
 
+        and:
+        def consumedMessages = consumptionStateEvent(totalMessagesWanted, totalMessagesReceived)
+        def jsonMessages = consumedMessages.currentBatchOfMessages.collect {JsonOutput.toJson(it)}
+
         when:
         kafkaConnector.initKafkaConsumer(topic, offsetType, totalMessagesWanted, consumptionStateCallback)
 
         then:
+        1 * consumerRecordTransformer.toJson(consumedMessages.currentBatchOfMessages) >> jsonMessages
         1 * kafkaConsumer.startConsumer(topic,
                 offsetType,
                 totalMessagesWanted,
-                { KafkaConsumptionStateCallback c -> c.messagesReceived(consumptionStateEvent(totalMessagesWanted, totalMessagesReceived)); true })
+                { KafkaConsumptionStateCallback c ->
+                    c.messagesReceived(consumedMessages); true })
 
         and:
-        conditions.within(1, {
+        conditions.within(10, {
             sparkSession.sql("select * from $topic").count() == totalMessagesReceived
         })
     }
@@ -64,7 +71,13 @@ class KafkaToSparkConnectorSpec extends Specification {
         def totalMessagesReceived = 150
 
         and:
+        def event = consumptionStateEvent(totalMessagesWanted, totalMessagesReceived)
+
+        and:
         prepareAnExistingDataFrame(topic, totalPreExistingMessages)
+
+        and:
+        consumerRecordTransformer.toJson(_) >> JsonOutput.toJson(event.currentBatchOfMessages)
 
         when:
         kafkaConnector.initKafkaConsumer(topic, offsetType, totalMessagesWanted, consumptionStateCallback)
@@ -73,7 +86,7 @@ class KafkaToSparkConnectorSpec extends Specification {
         1 * kafkaConsumer.startConsumer(topic,
                 offsetType,
                 totalMessagesWanted,
-                { KafkaConsumptionStateCallback c -> c.messagesReceived(consumptionStateEvent(totalMessagesWanted, totalMessagesReceived)); true })
+                { KafkaConsumptionStateCallback c -> c.messagesReceived(event); true })
 
         and:
         conditions.within(1, {

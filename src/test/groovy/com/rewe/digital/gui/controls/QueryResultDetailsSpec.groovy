@@ -4,6 +4,7 @@ import com.google.inject.Injector
 import com.rewe.digital.AbstractControlSpec
 import com.rewe.digital.gui.StageFactory
 import com.rewe.digital.gui.controls.helper.QueryResultTableColumnBuilder
+import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
@@ -37,7 +38,8 @@ class QueryResultDetailsSpec extends AbstractControlSpec {
         robotAdapter.robotCreate(stage.getScene());
     }
 
-    def "Show query result in a table pane"() {
+    @Unroll
+    def "Show query result in a table pane appending on current table: #appendEntries"() {
         given:
         def entries = [[a: 'row_1_a',
                         b: 'row_1_b',
@@ -46,15 +48,22 @@ class QueryResultDetailsSpec extends AbstractControlSpec {
                         b: 'row_2_b',
                         c: 'row_2_c']]
 
+        queryResultDetails.currentSearchResult.items = FXCollections.observableArrayList(previousEntries)
+
         when:
         FxToolkit.setupScene({
-            queryResultDetails.showSearchResult(entries, 'topic')
+            queryResultDetails.showSearchResult(entries, 'topic', appendEntries)
         })
 
         then:
         pollingConditions.eventually {
-            queryResultDetails.currentSearchResult.items == entries
+            queryResultDetails.currentSearchResult.items == appendEntries ? entries + previousEntries : entries
         }
+
+        where:
+        appendEntries | previousEntries
+        false         | [[a0: 'row_a_0']]
+        true          | [[a0: 'row_a_0']]
     }
 
     @Unroll
@@ -69,7 +78,7 @@ class QueryResultDetailsSpec extends AbstractControlSpec {
 
         when:
         FxToolkit.setupScene({
-            queryResultDetails.showSearchResult(entries, 'topic')
+            queryResultDetails.showSearchResult(entries, 'topic', false)
         })
 
         and:
@@ -109,7 +118,7 @@ class QueryResultDetailsSpec extends AbstractControlSpec {
 
         when:
         FxToolkit.setupScene({
-            queryResultDetails.showSearchResult(entries, 'topic')
+            queryResultDetails.showSearchResult(entries, 'topic', false)
         })
 
         then:

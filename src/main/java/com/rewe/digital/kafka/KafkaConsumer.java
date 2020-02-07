@@ -7,16 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
+import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.time.Instant;
 import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -74,22 +77,27 @@ public class KafkaConsumer {
         Runnable task = () -> {
             int totalConsumedMessages = 0;
             int retryCountOnEmptyPoll = 2;
-            while (totalConsumedMessages < totalMessagesWanted &&
-                    retryCountOnEmptyPoll > 0 &&
-                    shouldConsume[0]) {
-                val records = consumer.poll(ofSeconds(5));
-                totalConsumedMessages += records.count();
-                log.info("Received from topic {} {} messages", topic, totalConsumedMessages);
-                if (records.isEmpty()) {
-                    retryCountOnEmptyPoll -= 1;
+            try {
+                while (totalConsumedMessages < totalMessagesWanted &&
+                        retryCountOnEmptyPoll > 0 &&
+                        shouldConsume[0]) {
+                    val records = consumer.poll(ofSeconds(2));
+                    totalConsumedMessages += records.count();
+                    log.info("Received from topic {} {} messages", topic, totalConsumedMessages);
+                    if (records.isEmpty()) {
+                        retryCountOnEmptyPoll -= 1;
+                    }
+                    postCurrentBatchOfRecords(consumptionStateCallback,
+                            totalMessagesWanted,
+                            totalConsumedMessages,
+                            records);
                 }
-                postCurrentBatchOfRecords(consumptionStateCallback,
-                        totalMessagesWanted,
-                        totalConsumedMessages,
-                        records);
+            } catch (Exception e) {
+                log.error("Error while polling for messages", e);
+                consumptionStateCallback.consumptionAborted();
             }
 
-            if(shouldConsume[0] && totalConsumedMessages >= totalMessagesWanted) {
+            if (shouldConsume[0] && totalConsumedMessages >= totalMessagesWanted) {
                 consumptionStateCallback.consumptionFinished();
             } else {
                 consumptionStateCallback.consumptionAborted();
@@ -118,9 +126,10 @@ public class KafkaConsumer {
 
     private List<TopicPartition> assignTopic(final String topic,
                                              final org.apache.kafka.clients.consumer.KafkaConsumer<String, String> kafkaConsumer) {
-        List<TopicPartition> partitions = kafkaConsumer.listTopics().get(topic).stream()
+        val partitionInfos = Optional.ofNullable(kafkaConsumer.listTopics().get(topic));
+        val partitions = partitionInfos.map(infos -> infos.stream()
                 .map(partitionInfo -> new TopicPartition(topic, partitionInfo.partition()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())).orElseGet(ArrayList::new);
 
         kafkaConsumer.assign(partitions);
         return partitions;
